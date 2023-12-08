@@ -37,7 +37,7 @@ def predict_n_steps(model, X, n_steps):
         current_prediction = model(X)
 
         # Добавляем прогноз в список
-        predictions.append(current_prediction)
+        predictions.append(current_prediction.item())
 
         # Обновляем входные данные для следующего шага
         X = torch.cat([X[:,1:], current_prediction], dim=1)
