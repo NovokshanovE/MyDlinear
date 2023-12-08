@@ -9,3 +9,6 @@ import matplotlib.pyplot as plt
 data = pd.read_csv("shampoo.csv")
 ts = data.Sales
 ts.head(10)
+
+#ececec
+# 1. Preprocessing
