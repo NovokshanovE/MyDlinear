@@ -21,5 +21,6 @@ class DecompositionLayer(nn.Module):
 
         # calculate the trend and seasonal part of the series
         x_trend = self.avg(x_padded.permute(0, 2, 1)).permute(0, 2, 1)
+        print(x_trend.shape)
         x_seasonal = x - x_trend
         return x_seasonal, x_trend
