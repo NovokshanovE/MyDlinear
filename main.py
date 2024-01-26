@@ -4,16 +4,16 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
 def func(x):
-    return np.sin(x)/100
-data_set = 2000
+    return np.sin(x)#1.3*x+10#np.sin(x)/100
+data_set = 4000
 input_size = 100
 output_size = 100
 learning_rate = 0.001
 step = 1
-data_size = 1000
-column_name = 'CustomSin'#HUFL'
+data_size = 3000
+column_name = 'HUFL'
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name)
-data = dLinear.set_data(func)
+data = dLinear.data_reader()
 dLinear.set_model()
 # dLinear.load_modal()
 dLinear.train()
@@ -59,4 +59,4 @@ def test2():
     plt.show()
     
     
-test2()
+test1()

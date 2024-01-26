@@ -81,12 +81,12 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"update_model_v8_L1_SGD_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear_v2_L1_Adam_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
         # self.x = None
-    def train_model(self, model, dataloader, criterion, optimizer, num_epochs=100):
+    def train_model(self, model, dataloader, criterion, optimizer, num_epochs=10000):
         for epoch in range(num_epochs):
             print("Epoch = ", epoch)
             for X, Y in dataloader:
@@ -112,7 +112,7 @@ class DLinear:
         
         criterion = nn.L1Loss()
         
-        optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate)
+        optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
         window_size = self.input_size  
         dataset = MyDataset(self.X, window_size, self.output_size)
