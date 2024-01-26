@@ -136,23 +136,23 @@ class DLinear:
     def prediction(self):
         pred = self.input_size
         X_f = torch.tensor(self.data[self.column_name].values[self.data_set-pred:self.data_set-pred+pred*self.step:self.step], dtype=torch.float32).view(-1, 1)
-        print(X_f)
+        #print(X_f)
         X_t = X_f.tolist()
         predicted_values = []
         X = torch.tensor([X_t])
         prediction = self.model(X)
-        print(prediction)
+        #print(prediction)
         self.predicted_values = prediction.tolist()[-1][-1]
         return self.predicted_values
     def prediction_custom_data(self, func):
         pred = self.input_size
         X_f = torch.tensor([func(i) for i in range(self.data_set-pred, self.data_set-pred+pred*self.step,self.step)], dtype=torch.float32).view(-1, 1)
-        print(X_f)
+        #print(X_f)
         X_t = X_f.tolist()
         predicted_values = []
         X = torch.tensor([X_t])
         prediction = self.model(X)
-        print(prediction)
+        #print(prediction)
         self.predicted_values = prediction.tolist()[-1][-1]
         return self.predicted_values
     def MAE(self, ):
