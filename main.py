@@ -1,4 +1,88 @@
-from DLinear.test_class_1 import *
+from Dlinear_v2.MyDLinear import DLinear
 
-model = DLinearModel(context_length=)
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
+import numpy as np
+def func(x):
+    return 0.01*np.sin(x/10)#1.3*x+10#np.sin(x)/100
+data_set = 5000
+input_size = 100
+output_size = 100
+learning_rate = 0.001
+step = 1
+data_size = 3000
+column_name = 'HUFL'
+dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name)
+#data = dLinear.data_reader()
+data = dLinear.set_data(func=func)
+dLinear.set_model()
+#dLinear.load_modal()
+#dLinear.train__with_metrics(data_set=data_set, num_epochs=3000)
+dLinear.train()
 
+
+
+
+def test1():
+    future_predictions = dLinear.prediction(data_set)
+    print("Future Predictions:", future_predictions)
+    time = [data_set-output_size*step+i*step for i in range(2*output_size)]
+    print(output_size)
+    plt.rcParams["figure.figsize"] = (12,9)
+    plt.rcParams.update({'font.size': 14})
+    plt.plot(time, data[column_name].values[data_set-output_size*step:data_set+(output_size)*step:step])
+    #plt.plot(, )
+    pred = data[column_name].values[data_set-1]
+    time = [data_set+1+i*step for i in range(output_size)]
+
+        
+    plt.plot(time, future_predictions[::], 'r--')
+    #plt.title(model_name)
+    plt.xlabel('Временные точки', fontsize=14)
+    plt.ylabel('HUFL', fontsize=14)
+    plt.show()
+    #plt.savefig(model_name+"2", dpi=1000)
+    
+    dLinear.MAE()
+    dLinear.MAPE()
+def test2():
+    future_predictions = dLinear.prediction_custom_data(func)
+    print("Future Predictions:", future_predictions)
+    time = [data_set-output_size*step+i*step for i in range(2*output_size)]
+    print(output_size)
+    plt.rcParams["figure.figsize"] = (12,9)
+    plt.rcParams.update({'font.size': 14})
+    plt.plot(time, [func(data_set-output_size*step+i*step) for i in range(2*output_size)])
+    #plt.plot(, )
+
+
+    time = [data_set+i*step for i in range(output_size)]
+    plt.plot(time, future_predictions[::], 'r--')
+    #plt.title(model_name)
+    plt.xlabel('Временные точки', fontsize=14)
+    plt.ylabel('HUFL', fontsize=14)
+    plt.show()
+    
+def test3():
+    future_predictions = dLinear.prediction(data_set)
+    print("Future Predictions:", future_predictions)
+    time = [data_set-output_size*step+i*step for i in range(2*output_size)]
+    print(output_size)
+    plt.rcParams["figure.figsize"] = (12,9)
+    plt.rcParams.update({'font.size': 14})
+    plt.plot(time, data[column_name].values[data_set-output_size*step:data_set+(output_size)*step:step])
+    #plt.plot(, )
+    pred = data[column_name].values[data_set-1]
+    time = [data_set+1+i*step for i in range(output_size)]
+
+        
+    plt.plot(time, future_predictions[::], 'r--')
+    #plt.title(model_name)
+    plt.xlabel('Временные точки', fontsize=14)
+    plt.ylabel('HUFL', fontsize=14)
+    plt.show()
+    #plt.savefig(model_name+"2", dpi=1000)
+    
+    dLinear.MAE()
+    dLinear.MAPE()
+test2()
