@@ -12,8 +12,9 @@ from torch.utils.data import DataLoader, TensorDataset
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
+import torch.optim.lr_scheduler as lr_scheduler
 # from decomposition import DecompositionLayer
-torch.set_num_threads(1)
+torch.set_num_threads(10)
 
 
 class DLinearModel(nn.Module):
@@ -71,7 +72,8 @@ class DecompositionLayer(nn.Module):
         return x_seasonal, x_trend
     
 class DLinear:
-    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.0000001, step = 1, data_size = 3000, column_name = "HUFL"):
+    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL"):
+        torch.set_num_threads(20)
         self.input_size = input_size
         self.pred = self.input_size
         self.learning_rate = learning_rate
@@ -81,12 +83,12 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear_v2_L1_Adam_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear(test_sinus)_v2_L1_Adam_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
         # self.x = None
-    def train_model(self, model, dataloader, criterion, optimizer, num_epochs=10000):
+    def train_model(self, model, dataloader, criterion, optimizer, num_epochs=100):
         for epoch in range(num_epochs):
             print("Epoch = ", epoch)
             for X, Y in dataloader:
@@ -129,13 +131,61 @@ class DLinear:
     def load_modal(self):
         self.model.load_state_dict(torch.load(f"{self.model_name}"))
         self.model.eval()
-
-
         self.model.parameters
-
-    def prediction(self):
+        
+        
+    def train__with_metrics(self, num_epochs = 1000, data_set = 3000):
+        window_size = self.input_size  
+        dataset = MyDataset(self.X, window_size, self.output_size)
+        dataloader = DataLoader(dataset)#, shuffle=True)
+        criterion = nn.L1Loss()
+    
+        optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        #scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', cooldown = 10)
+        lambda1 = lambda epoch: 0.65 ** epoch
+        #scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda1)
+        #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10, 20, 30, 40], gamma=0.1)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=1e-10, last_epoch=-1)
+        #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=len(dataloader)*10, gamma=0.9)
+        
+        
+        print("Windows: ", len(dataloader))
+        for epoch in range(num_epochs):
+            print("Epoch = ", epoch)
+            print(f"LR = {optimizer.param_groups[0]['lr']}")
+            for X, Y in dataloader:
+                if(epoch <= 0):
+                    
+                    optimizer.zero_grad()
+                    #print(X, Y)
+                    output = self.model.forward(X).view(1, -1, 1)
+                    #print(torch.tensor([output.tolist()]), Y)
+                    loss = criterion(output, Y)
+                    
+                    loss.backward()
+                    
+                    optimizer.step()
+                    
+                else:
+                    optimizer.zero_grad()
+                    #print(X, Y)
+                    output = self.model.forward(X).view(1, -1, 1)
+                    #print(torch.tensor([output.tolist()]), Y)
+                    loss = criterion(output, Y)
+                    
+                    loss.backward()
+                    
+                    optimizer.step()
+                    scheduler.step(loss)
+                
+            # result = self.prediction(data_set=data_set)
+            self.MAPE(data_set=data_set)
+        
+        
+        
+    def prediction(self, data_set):
         pred = self.input_size
-        X_f = torch.tensor(self.data[self.column_name].values[self.data_set-pred:self.data_set-pred+pred*self.step:self.step], dtype=torch.float32).view(-1, 1)
+        X_f = torch.tensor(self.data[self.column_name].values[data_set-pred:data_set-pred+pred*self.step:self.step], dtype=torch.float32).view(-1, 1)
         #print(X_f)
         X_t = X_f.tolist()
         predicted_values = []
@@ -155,21 +205,21 @@ class DLinear:
         #print(prediction)
         self.predicted_values = prediction.tolist()[-1][-1]
         return self.predicted_values
-    def MAE(self, ):
+    def MAE(self, data_set):
         i = [self.data_set+1+i*self.step for i in range(self.output_size)]
 
         actual = np.array([self.data[self.column_name].values[k] for k in i])
-        prediction = self.prediction()
+        prediction = self.prediction(data_set=data_set)
 
         l1_loss = abs(actual - prediction)
         mae_cost = l1_loss.mean()
         print("MAE:", mae_cost)
         
-    def MAPE(self):
-        i = [self.data_set+1+i*self.step for i in range(self.output_size)]
+    def MAPE(self, data_set):
+        i = [data_set+1+i*self.step for i in range(self.output_size)]
 
         actual = np.array([self.data[self.column_name].values[k] for k in i])
-        prediction = self.prediction()
+        prediction = self.prediction(data_set=data_set)
 
         l1_loss = abs(actual+1 - prediction-1)/abs(actual+1)
 
