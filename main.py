@@ -1,7 +1,7 @@
 from Dlinear_v2.MyDLinear import DLinear
 
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
+# from matplotlib.pyplot import figure
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.seasonal import STL
@@ -101,16 +101,17 @@ def test_decomposition():
         
     plt.plot(time, season, 'g--')
     plt.plot(time, summa, 'r--')
-    test_data = data[column_name].values[data_set:data_set+(output_size)]
-
-    test_data = pd.DataFrame(
-    test_data
+    test_data = data[column_name].values[data_set:data_set+(output_size)].tolist()
+    
+    test_data = pd.Series(
+    test_data, index = pd.interval_range(start=data_set, end= data_set+len(test_data), periods=len(test_data))
     )
-    test_data.describe()
-    stl = STL(test_data)#, seasonal=13)
+    print(test_data)
+    print(test_data.describe())
+    stl = STL(test_data, seasonal=13, period=100)
     
     res = stl.fit()
-    res.plot()
+    # res.plot()
     seas = res.seasonal
     print(seas.head)
     plt.plot(time, seas, 'g-.')

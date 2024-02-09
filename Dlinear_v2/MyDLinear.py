@@ -34,6 +34,9 @@ class DLinearModel(nn.Module):
     def decompos(self, x):
         seasonal, trend = self.decomposition(x)
         return seasonal, trend
+    def decomposition_stl(self, x):
+        pass
+        # return seasonal, trend
     
 class MyDataset(TensorDataset):
     def __init__(self, data, window, output):
