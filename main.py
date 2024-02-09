@@ -3,6 +3,8 @@ from Dlinear_v2.MyDLinear import DLinear
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 import numpy as np
+import pandas as pd
+from statsmodels.tsa.seasonal import STL
 def func(x):
     return 0.01*np.sin(x/10)#1.3*x+10#np.sin(x)/100
 data_set = 5000
@@ -99,7 +101,19 @@ def test_decomposition():
         
     plt.plot(time, season, 'g--')
     plt.plot(time, summa, 'r--')
+    test_data = data[column_name].values[data_set:data_set+(output_size)]
+
+    test_data = pd.DataFrame(
+    test_data
+    )
+    test_data.describe()
+    stl = STL(test_data)#, seasonal=13)
     
+    res = stl.fit()
+    res.plot()
+    seas = res.seasonal
+    print(seas.head)
+    plt.plot(time, seas, 'g-.')
     
     plt.show()
 test_decomposition()
