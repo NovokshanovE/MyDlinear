@@ -13,12 +13,12 @@ step = 1
 data_size = 3000
 column_name = 'HUFL'
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name)
-#data = dLinear.data_reader()
-data = dLinear.set_data(func=func)
+data = dLinear.data_reader()
+#data = dLinear.set_data(func=func)
 dLinear.set_model()
-#dLinear.load_modal()
-#dLinear.train__with_metrics(data_set=data_set, num_epochs=3000)
-dLinear.train()
+dLinear.load_modal("model_10000epoch")
+# dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
+#dLinear.train()
 
 
 
@@ -85,4 +85,21 @@ def test3():
     
     dLinear.MAE()
     dLinear.MAPE()
-test2()
+    
+def test_decomposition():
+    data_set =3000
+    trend, season, summa = dLinear.decomposition(data_set)
+    
+    plt.rcParams["figure.figsize"] = (12,9)
+    plt.rcParams.update({'font.size': 14})
+    time = [i for i in range(output_size)]
+    plt.plot(time, data[column_name].values[data_set:data_set+(output_size)])
+    print()
+    plt.plot(time, trend, 'b--')
+        
+    plt.plot(time, season, 'g--')
+    plt.plot(time, summa, 'r--')
+    
+    
+    plt.show()
+test_decomposition()

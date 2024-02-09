@@ -1,7 +1,4 @@
-# %% [markdown]
-# ## Подключение библиотек и определение класса Dataset
 
-# %%
 
 import torch
 import torch.nn as nn
@@ -15,6 +12,8 @@ import numpy as np
 import torch.optim.lr_scheduler as lr_scheduler
 # from decomposition import DecompositionLayer
 torch.set_num_threads(10)
+from statsmodels.tsa.seasonal import seasonal_decompose
+
 
 
 class DLinearModel(nn.Module):
@@ -32,6 +31,9 @@ class DLinearModel(nn.Module):
         trend_output = self.linear_trend(trend.reshape(1, 1, -1))
         
         return seasonal_output + trend_output
+    def decompos(self, x):
+        seasonal, trend = self.decomposition(x)
+        return seasonal, trend
     
 class MyDataset(TensorDataset):
     def __init__(self, data, window, output):
@@ -64,9 +66,12 @@ class DecompositionLayer(nn.Module):
         front = x[:, 0:1, :].repeat(1, num_of_pads, 1)
         end = x[:, -1:, :].repeat(1, num_of_pads, 1)
         x_padded = torch.cat([front, x, end], dim=1)
-
+        # print(x)
+        # result_add = seasonal_decompose(x_padded, model='additive')
+        
         # calculate the trend and seasonal part of the series
         x_trend = self.avg(x_padded.permute(0, 2, 1))[:,:,:-1].permute(0, 2, 1)
+        # print("Delta trend:", x_trend - result_add.trend)
         #print(x_trend.shape)
         x_seasonal = x - x_trend
         return x_seasonal, x_trend
@@ -128,7 +133,8 @@ class DLinear:
 
 
         torch.save(self.model.state_dict(), self.model_name)
-    def load_modal(self):
+    def load_modal(self, name):
+        self.model_name = name
         self.model.load_state_dict(torch.load(f"{self.model_name}"))
         self.model.eval()
         self.model.parameters
@@ -181,6 +187,29 @@ class DLinear:
             # result = self.prediction(data_set=data_set)
             self.MAPE(data_set=data_set)
         
+    
+    def decomposition(self, data_set = 3000):
+       
+        X = torch.tensor([self.data[self.column_name].values[data_set:data_set+self.input_size]], dtype=torch.float32).view(1, -1, 1)
+        # self.x = pd.read_csv('ETTh1.csv').HUFL
+        
+        print(X)
+        
+            
+            #print(X, Y)
+        trend, seasonal = self.model.decompos(X)
+        summa = trend+seasonal
+        return trend.reshape(1, 1, -1).tolist()[0][0], seasonal.reshape(1, 1, -1).tolist()[0][0], summa.reshape(1, 1, -1).tolist()[0][0]
+            #print(torch.tensor([output.tolist()]), Y)
+            
+            
+            
+                
+            # result = self.prediction(data_set=data_set)
+            
+        
+        
+        
         
         
     def prediction(self, data_set):
@@ -230,38 +259,3 @@ class DLinear:
 
         mape_cost = np.sum(l1_loss)/self.output_size
         print("MAPE:", mape_cost)
-        
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
-    
-
-
-
-
-
-
-
-# %%
-
-
-# %%
-
-
-
-
-
