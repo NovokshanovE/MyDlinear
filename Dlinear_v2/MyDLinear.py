@@ -59,20 +59,13 @@ class DLinearModelSTL(nn.Module):
         return seasonal_output + trend_output + resid_output
     
     def decomposition(self, x):
-        # print(pd.Series(x.view(-1).tolist()))
-         
         stl = STL(pd.Series(x.view(-1).tolist()), period=10)
-    
         res = stl.fit()
-        # res.plot()
-        #print(res.seasonal.tolist())
         seasonal, trend, resid = torch.tensor(res.seasonal.tolist(), dtype=torch.float32).view(1, -1, 1),\
         torch.tensor(res.trend.tolist(), dtype=torch.float32).view(1, -1, 1),\
         torch.tensor(res.resid.tolist(), dtype=torch.float32).view(1, -1, 1)
-        #print(seasonal, trend, resid)
         return seasonal, trend, resid
-        # seasonal, trend = self.decomposition(x)
-        # return seasonal, trend
+
 class MyDataset(TensorDataset):
     def __init__(self, data, window, output):
         self.data = data
