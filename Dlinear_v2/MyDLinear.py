@@ -1,18 +1,21 @@
 
 
+from sympy import false, true
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+# from sklearn.metrics import mean_squared_error, mean_absolute_error
 from torch.utils.data import DataLoader, TensorDataset
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
+# import matplotlib.pyplot as plt
+# from matplotlib.pyplot import figure
 import numpy as np
 import torch.optim.lr_scheduler as lr_scheduler
+from statsmodels.tsa.seasonal import STL
+import pandas as pd
 # from decomposition import DecompositionLayer
 torch.set_num_threads(10)
-from statsmodels.tsa.seasonal import seasonal_decompose
+# from statsmodels.tsa.seasonal import seasonal_decompose
 
 
 
@@ -31,13 +34,45 @@ class DLinearModel(nn.Module):
         trend_output = self.linear_trend(trend.reshape(1, 1, -1))
         
         return seasonal_output + trend_output
+    
     def decompos(self, x):
         seasonal, trend = self.decomposition(x)
         return seasonal, trend
-    def decomposition_stl(self, x):
-        pass
-        # return seasonal, trend
     
+class DLinearModelSTL(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(DLinearModelSTL, self).__init__()
+        self.linear_seasonal = nn.Linear(input_size, output_size)
+        self.linear_trend = nn.Linear(input_size, output_size)
+        self.linear_resid = nn.Linear(input_size, output_size)
+        # self.decomposition = DecompositionLayer(input_size)
+        
+        
+        
+    def forward(self, context):
+        seasonal, trend, resid = self.decomposition(context)
+        #print(seasonal, trend)
+        seasonal_output = self.linear_seasonal(seasonal.reshape(1, 1, -1))
+        trend_output = self.linear_trend(trend.reshape(1, 1, -1))
+        resid_output = self.linear_resid(resid.reshape(1, 1, -1))
+        
+        return seasonal_output + trend_output + resid_output
+    
+    def decomposition(self, x):
+        # print(pd.Series(x.view(-1).tolist()))
+         
+        stl = STL(pd.Series(x.view(-1).tolist()), period=10)
+    
+        res = stl.fit()
+        # res.plot()
+        #print(res.seasonal.tolist())
+        seasonal, trend, resid = torch.tensor(res.seasonal.tolist(), dtype=torch.float32).view(1, -1, 1),\
+        torch.tensor(res.trend.tolist(), dtype=torch.float32).view(1, -1, 1),\
+        torch.tensor(res.resid.tolist(), dtype=torch.float32).view(1, -1, 1)
+        #print(seasonal, trend, resid)
+        return seasonal, trend, resid
+        # seasonal, trend = self.decomposition(x)
+        # return seasonal, trend
 class MyDataset(TensorDataset):
     def __init__(self, data, window, output):
         self.data = data
@@ -91,7 +126,7 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear(test_sinus)_v2_L1_Adam_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear(test_stl)_v2_L1_Adam_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
@@ -113,29 +148,38 @@ class DLinear:
         self.X = torch.tensor(self.data[self.column_name].values[:self.data_size:self.step], dtype=torch.float32).view(-1, 1)
         # self.x = pd.read_csv('ETTh1.csv').HUFL
         return self.data
-    def set_data(self, func):
+        
+    def set_data(self, func): 
+        """ This methos set data by function in func
+
+        Args:
+            func(x): link to function which return y(x)
+        """
         self.X = torch.tensor([func(i) for i in range(self.data_size)], dtype=torch.float32).view(-1, 1)
         
-    def set_model(self):
-        self.model = DLinearModel(self.input_size, self.output_size)
-    def train(self):
-        
-        criterion = nn.L1Loss()
-        
-        optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+    def set_model(self, stl = false):
+        """This method set model.
+        stl = true if you want to use stl model with stl decomposition.
 
+        Args:
+            stl (bool, optional): set model type. Defaults to false.
+        """
+        if stl:
+            self.model = DLinearModelSTL(self.input_size, self.output_size)
+        else:
+            self.model = DLinearModel(self.input_size, self.output_size)
+    def train(self, num_epochs = 100):
+        criterion = nn.L1Loss()
+        optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         window_size = self.input_size  
         dataset = MyDataset(self.X, window_size, self.output_size)
-
         dataloader = DataLoader(dataset)#, shuffle=True)
-
         len(dataloader)
-
-        self.train_model(self.model, dataloader, criterion, optimizer)
-
-
-
+        self.train_model(self.model, dataloader, criterion, optimizer, num_epochs=num_epochs)
         torch.save(self.model.state_dict(), self.model_name)
+
+    
+
     def load_modal(self, name):
         self.model_name = name
         self.model.load_state_dict(torch.load(f"{self.model_name}"))
@@ -151,7 +195,7 @@ class DLinear:
     
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         #scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', cooldown = 10)
-        lambda1 = lambda epoch: 0.65 ** epoch
+        # lambda_1 = lambda epoch: 0.65 ** epoch
         #scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda1)
         #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10, 20, 30, 40], gamma=0.1)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=1e-10, last_epoch=-1)
@@ -201,6 +245,7 @@ class DLinear:
             
             #print(X, Y)
         trend, seasonal = self.model.decompos(X)
+        print(trend, seasonal)
         summa = trend+seasonal
         return trend.reshape(1, 1, -1).tolist()[0][0], seasonal.reshape(1, 1, -1).tolist()[0][0], summa.reshape(1, 1, -1).tolist()[0][0]
             #print(torch.tensor([output.tolist()]), Y)

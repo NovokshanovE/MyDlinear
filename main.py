@@ -1,3 +1,5 @@
+from sympy import false, true
+import torch
 from Dlinear_v2.MyDLinear import DLinear
 
 import matplotlib.pyplot as plt
@@ -5,6 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.seasonal import STL
+# from torchvision import models
+# from torchsummary import summary
+
 def func(x):
     return 0.01*np.sin(x/10)#1.3*x+10#np.sin(x)/100
 data_set = 5000
@@ -17,10 +22,11 @@ column_name = 'HUFL'
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name)
 data = dLinear.data_reader()
 #data = dLinear.set_data(func=func)
-dLinear.set_model()
-dLinear.load_modal("model_10000epoch")
+dLinear.set_model(stl=true)
+#dLinear.load_modal("model_10000epoch")
 # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-#dLinear.train()
+dLinear.train()
+# print(summary(dLinear))
 
 
 
@@ -97,24 +103,28 @@ def test_decomposition():
     time = [i for i in range(output_size)]
     plt.plot(time, data[column_name].values[data_set:data_set+(output_size)])
     print()
-    plt.plot(time, trend, 'b--')
+    plt.plot(time, trend, 'g-.')
         
     plt.plot(time, season, 'g--')
     plt.plot(time, summa, 'r--')
     test_data = data[column_name].values[data_set:data_set+(output_size)].tolist()
     
     test_data = pd.Series(
-    test_data, index = pd.interval_range(start=data_set, end= data_set+len(test_data), periods=len(test_data))
-    )
+    test_data)#, index = pd.interval_range(start=data_set, end= data_set+len(test_data), periods=len(test_data))
+    
     print(test_data)
     print(test_data.describe())
-    stl = STL(test_data, seasonal=13, period=100)
+    stl = STL(test_data, seasonal=13, period=10)
     
     res = stl.fit()
     # res.plot()
     seas = res.seasonal
     print(seas.head)
-    plt.plot(time, seas, 'g-.')
+    plt.plot(time, seas, 'b--')
+    plt.plot(time, res.trend, 'b-.')
+    plt.plot(time, res.trend + seas + res.resid, 'p-.')
     
     plt.show()
-test_decomposition()
+# test_decomposition()
+    
+test1()
