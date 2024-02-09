@@ -23,9 +23,9 @@ dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000,
 data = dLinear.data_reader()
 #data = dLinear.set_data(func=func)
 dLinear.set_model(stl=true)
-#dLinear.load_modal("model_10000epoch")
+dLinear.load_modal("dlinear(test_stl)_v2_L1_Adam_HUFL_input100_output100")
 # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-dLinear.train()
+#dLinear.train()
 # print(summary(dLinear))
 
 
@@ -51,8 +51,8 @@ def test1():
     plt.show()
     #plt.savefig(model_name+"2", dpi=1000)
     
-    dLinear.MAE()
-    dLinear.MAPE()
+    dLinear.MAE(data_set=data_set)
+    dLinear.MAPE(data_set=data_set)
 def test2():
     future_predictions = dLinear.prediction_custom_data(func)
     print("Future Predictions:", future_predictions)
