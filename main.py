@@ -1,5 +1,6 @@
 
 # import torch
+import random
 from Dlinear_v2.MyDLinear import DLinear
 
 import matplotlib.pyplot as plt
@@ -126,5 +127,37 @@ def test_decomposition():
     
     plt.show()
 # test_decomposition()
+
+
+def random_walk(
+    df_size = 1000, start_value=0, threshold=0.5, 
+    step_size=1, min_value=-np.inf, max_value=np.inf
+):
+    df = pd.DataFrame(index = [i for i in range(df_size)])
+    previous_value = start_value
+    for index, row in df.iterrows():
+        if previous_value < min_value:
+            previous_value = min_value
+        if previous_value > max_value:
+            previous_value = max_value
+        probability = random.random()
+        if probability >= threshold:
+            df.loc[index, 'value'] = previous_value + step_size
+        else:
+            df.loc[index, 'value'] = previous_value - step_size
+        previous_value = df.loc[index, 'value']
+    return df
+
+
+def test_rw():
+    plt.rcParams["figure.figsize"] = (12,9)
+    plt.rcParams.update({'font.size': 14})
+    res = random_walk(df_size=5000, step_size=1, threshold=0.5, start_value=10)
+
+
+    plt.plot(res, 'g')
     
-test1()
+    plt.show()
+
+
+test_rw()

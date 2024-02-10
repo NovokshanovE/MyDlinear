@@ -142,14 +142,16 @@ class DLinear:
         # self.x = pd.read_csv('ETTh1.csv').HUFL
         return self.data
         
-    def set_data(self, func): 
+    def set_data_function(self, func): 
         """ This methos set data by function in func
 
         Args:
             func(x): link to function which return y(x)
         """
         self.X = torch.tensor([func(i) for i in range(self.data_size)], dtype=torch.float32).view(-1, 1)
-        
+    def set_data(self, df):
+        self.data = df
+        self.X = torch.tensor(self.data.values[:self.data_size:self.step], dtype=torch.float32).view(-1, 1)
     def set_model(self, stl = False):
         """This method set model.
         stl = true if you want to use stl model with stl decomposition.
