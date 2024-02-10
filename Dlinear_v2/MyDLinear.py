@@ -1,6 +1,6 @@
 
 
-from sympy import false, true
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import torch.optim.lr_scheduler as lr_scheduler
 from statsmodels.tsa.seasonal import STL
-import pandas as pd
+# import intel_extension_for_pytorch as ipex
 # from decomposition import DecompositionLayer
 torch.set_num_threads(10)
 # from statsmodels.tsa.seasonal import seasonal_decompose
@@ -119,7 +119,7 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear(test_stl)_v2_L1_Adam_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear(gpu_stl_v1)_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
@@ -150,7 +150,7 @@ class DLinear:
         """
         self.X = torch.tensor([func(i) for i in range(self.data_size)], dtype=torch.float32).view(-1, 1)
         
-    def set_model(self, stl = false):
+    def set_model(self, stl = False):
         """This method set model.
         stl = true if you want to use stl model with stl decomposition.
 
@@ -161,9 +161,15 @@ class DLinear:
             self.model = DLinearModelSTL(self.input_size, self.output_size)
         else:
             self.model = DLinearModel(self.input_size, self.output_size)
-    def train(self, num_epochs = 100):
-        criterion = nn.L1Loss()
+    def train(self, num_epochs = 100, gpu=False):
+        # if gpu:
+        #     optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        #     self.model = self.model.to("xpu")
+        #     self.model, optimizer = ipex.optimize(self.model, optimizer=optimizer, dtype=torch.float32)
+        # else:
+            
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        criterion = nn.L1Loss()
         window_size = self.input_size  
         dataset = MyDataset(self.X, window_size, self.output_size)
         dataloader = DataLoader(dataset)#, shuffle=True)

@@ -1,5 +1,5 @@
-from sympy import false, true
-import torch
+
+# import torch
 from Dlinear_v2.MyDLinear import DLinear
 
 import matplotlib.pyplot as plt
@@ -22,10 +22,10 @@ column_name = 'HUFL'
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name)
 data = dLinear.data_reader()
 #data = dLinear.set_data(func=func)
-dLinear.set_model(stl=true)
+dLinear.set_model(stl=True)
 dLinear.load_modal("dlinear(test_stl)_v2_L1_Adam_HUFL_input100_output100")
 # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-#dLinear.train()
+#dLinear.train(gpu=True)
 # print(summary(dLinear))
 
 
