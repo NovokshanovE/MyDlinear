@@ -119,7 +119,7 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear(gpu_stl_v1)_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear(stl+rw_v1)_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
@@ -136,8 +136,9 @@ class DLinear:
                 loss = criterion(output, Y)
                 loss.backward()
                 optimizer.step()
-    def data_reader(self):
-        self.data = pd.read_csv('ETTh1.csv')  
+    def data_reader(self, file_name, column_name):
+        self.column_name = column_name
+        self.data = pd.read_csv(file_name)  
         self.X = torch.tensor(self.data[self.column_name].values[:self.data_size:self.step], dtype=torch.float32).view(-1, 1)
         # self.x = pd.read_csv('ETTh1.csv').HUFL
         return self.data

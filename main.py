@@ -13,18 +13,18 @@ from statsmodels.tsa.seasonal import STL
 
 def func(x):
     return 0.01*np.sin(x/10)#1.3*x+10#np.sin(x)/100
-data_set = 5000
+data_set = 4000
 input_size = 100
 output_size = 100
 learning_rate = 0.001
 step = 1
 data_size = 3000
-column_name = 'HUFL'
+column_name = 'value'
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name)
-data = dLinear.data_reader()
+data = dLinear.data_reader(file_name='dataset.csv', column_name='value')
 #data = dLinear.set_data(func=func)
 dLinear.set_model(stl=True)
-dLinear.load_modal("dlinear(test_stl)_v2_L1_Adam_HUFL_input100_output100")
+dLinear.load_modal("dlinear(stl+rw_v1)_HUFL_input100_output100")
 # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
 #dLinear.train(gpu=True)
 # print(summary(dLinear))
@@ -48,7 +48,7 @@ def test1():
     plt.plot(time, future_predictions[::], 'r--')
     #plt.title(model_name)
     plt.xlabel('Временные точки', fontsize=14)
-    plt.ylabel('HUFL', fontsize=14)
+    plt.ylabel(column_name, fontsize=14)
     plt.show()
     #plt.savefig(model_name+"2", dpi=1000)
     
@@ -146,18 +146,19 @@ def random_walk(
         else:
             df.loc[index, 'value'] = previous_value - step_size
         previous_value = df.loc[index, 'value']
+        
     return df
 
 
 def test_rw():
     plt.rcParams["figure.figsize"] = (12,9)
     plt.rcParams.update({'font.size': 14})
-    res = random_walk(df_size=5000, step_size=1, threshold=0.5, start_value=10)
-
-
+    res = random_walk(df_size=5000, step_size=0.01, threshold=0.5, start_value=10)
+    res.to_csv(path_or_buf="dataset.csv")
+    
     plt.plot(res, 'g')
     
     plt.show()
 
 
-test_rw()
+test1()
