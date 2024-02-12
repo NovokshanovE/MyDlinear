@@ -19,14 +19,15 @@ output_size = 100
 learning_rate = 0.001
 step = 1
 data_size = 3000
-column_name = 'value'
-dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name)
-data = dLinear.data_reader(file_name='dataset.csv', column_name='value')
+column_name = 'Value'
+dataset_name = 'EUR-GBP'
+dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name, dataset_name = dataset_name)
+data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
 #data = dLinear.set_data(func=func)
 dLinear.set_model(stl=True)
-dLinear.load_modal("dlinear(stl+rw_v1)_HUFL_input100_output100")
+#dLinear.load_modal("dlinear(stl+rw_v1)_HUFL_input100_output100")
 # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-#dLinear.train(gpu=True)
+dLinear.train(num_epochs =  1000, gpu=True)
 # print(summary(dLinear))
 
 
@@ -49,11 +50,12 @@ def test1():
     #plt.title(model_name)
     plt.xlabel('Временные точки', fontsize=14)
     plt.ylabel(column_name, fontsize=14)
+    dLinear.MAE(data_set=data_set)
+    dLinear.MAPE(data_set=data_set)
     plt.show()
     #plt.savefig(model_name+"2", dpi=1000)
     
-    dLinear.MAE(data_set=data_set)
-    dLinear.MAPE(data_set=data_set)
+    
 def test2():
     future_predictions = dLinear.prediction_custom_data(func)
     print("Future Predictions:", future_predictions)
@@ -153,8 +155,8 @@ def random_walk(
 def test_rw():
     plt.rcParams["figure.figsize"] = (12,9)
     plt.rcParams.update({'font.size': 14})
-    res = random_walk(df_size=5000, step_size=0.01, threshold=0.5, start_value=10)
-    res.to_csv(path_or_buf="dataset.csv")
+    res = random_walk(df_size=5000, step_size=0.1, threshold=0.5, start_value=10)
+    res.to_csv(path_or_buf="dataset_1.csv")
     
     plt.plot(res, 'g')
     

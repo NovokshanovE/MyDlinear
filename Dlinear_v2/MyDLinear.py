@@ -1,6 +1,8 @@
 
 
-
+from alive_progress import alive_bar
+import statusbar
+import datetime
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -108,8 +110,18 @@ class DecompositionLayer(nn.Module):
         return x_seasonal, x_trend
     
 class DLinear:
-    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL"):
+    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset'):
         torch.set_num_threads(20)
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print('Using device:', device)
+        print()
+
+        #Additional Info when using cuda
+        if device.type == 'cuda':
+            print(torch.cuda.get_device_name(0))
+            print('Memory Usage:')
+            print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
+            print('Cached:   ', round(torch.cuda.memory_reserved(0)/1024**3,1), 'GB')
         self.input_size = input_size
         self.pred = self.input_size
         self.learning_rate = learning_rate
@@ -119,23 +131,36 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear(stl+rw_v1)_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear(stl+rw_v2)_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
         # self.x = None
     def train_model(self, model, dataloader, criterion, optimizer, num_epochs=100):
-        for epoch in range(num_epochs):
-            print("Epoch = ", epoch)
-            for X, Y in dataloader:
+        with alive_bar(num_epochs) as bar:
+            for epoch in range(num_epochs):
+                # bar = statusbar.StatusBar("Status")
                 
-                optimizer.zero_grad()
-                #print(X, Y)
-                output = model.forward(X).view(1, -1, 1)
-                #print(torch.tensor([output.tolist()]), Y)
-                loss = criterion(output, Y)
-                loss.backward()
-                optimizer.step()
+                # bar.add_progress(epoch, "#")
+                # bar.add_progress(num_epochs-epoch*10, ".")
+                # print(" ", bar.format_status())
+                #print(f"Epoch = {epoch}", end = '\r')
+                # declare your expected total
+                            # <<-- your original loop
+                # print(epoch, end='\r')
+                           # process each item
+                bar()
+                                  # call `bar()` at the end
+                
+                for X, Y in dataloader:
+                    
+                    optimizer.zero_grad()
+                    #print(X, Y)
+                    output = model.forward(X).view(1, -1, 1)
+                    #print(torch.tensor([output.tolist()]), Y)
+                    loss = criterion(output, Y)
+                    loss.backward()
+                    optimizer.step()
     def data_reader(self, file_name, column_name):
         self.column_name = column_name
         self.data = pd.read_csv(file_name)  
@@ -170,7 +195,9 @@ class DLinear:
         #     self.model = self.model.to("xpu")
         #     self.model, optimizer = ipex.optimize(self.model, optimizer=optimizer, dtype=torch.float32)
         # else:
-            
+        print(datetime.datetime.now())
+        
+        
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         criterion = nn.L1Loss()
         window_size = self.input_size  
@@ -179,6 +206,8 @@ class DLinear:
         len(dataloader)
         self.train_model(self.model, dataloader, criterion, optimizer, num_epochs=num_epochs)
         torch.save(self.model.state_dict(), self.model_name)
+        print(f"Model save as {self.model_name}")
+        print(datetime.datetime.now())
 
     
 
