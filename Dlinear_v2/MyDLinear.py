@@ -1,7 +1,7 @@
 
 
 from alive_progress import alive_bar
-import statusbar
+
 import datetime
 import torch
 import torch.nn as nn
@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader, TensorDataset
 # import matplotlib.pyplot as plt
 # from matplotlib.pyplot import figure
 import numpy as np
-import torch.optim.lr_scheduler as lr_scheduler
+# import torch.optim.lr_scheduler as lr_scheduler
 from statsmodels.tsa.seasonal import STL
 # import intel_extension_for_pytorch as ipex
 # from decomposition import DecompositionLayer
@@ -296,7 +296,7 @@ class DLinear:
         X_f = torch.tensor(self.data[self.column_name].values[data_set-pred:data_set-pred+pred*self.step:self.step], dtype=torch.float32).view(-1, 1)
         #print(X_f)
         X_t = X_f.tolist()
-        predicted_values = []
+        # predicted_values = []
         X = torch.tensor([X_t])
         prediction = self.model(X)
         #print(prediction)
@@ -307,7 +307,7 @@ class DLinear:
         X_f = torch.tensor([func(i) for i in range(self.data_set-pred, self.data_set-pred+pred*self.step,self.step)], dtype=torch.float32).view(-1, 1)
         #print(X_f)
         X_t = X_f.tolist()
-        predicted_values = []
+        # predicted_values = []
         X = torch.tensor([X_t])
         prediction = self.model(X)
         #print(prediction)

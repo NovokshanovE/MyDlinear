@@ -42,7 +42,7 @@ def test1():
     plt.rcParams.update({'font.size': 14})
     plt.plot(time, data[column_name].values[data_set-output_size*step:data_set+(output_size)*step:step])
     #plt.plot(, )
-    pred = data[column_name].values[data_set-1]
+    # pred = data[column_name].values[data_set-1]
     time = [data_set+1+i*step for i in range(output_size)]
 
         
@@ -83,7 +83,7 @@ def test3():
     plt.rcParams.update({'font.size': 14})
     plt.plot(time, data[column_name].values[data_set-output_size*step:data_set+(output_size)*step:step])
     #plt.plot(, )
-    pred = data[column_name].values[data_set-1]
+    # pred = data[column_name].values[data_set-1]
     time = [data_set+1+i*step for i in range(output_size)]
 
         
