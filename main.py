@@ -21,13 +21,13 @@ step = 1
 data_size = 3000
 column_name = 'Value'
 dataset_name = 'EUR-GBP'
-dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = 3000, column_name=column_name, dataset_name = dataset_name)
+dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = data_size, column_name=column_name, dataset_name = dataset_name)
 data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
 #data = dLinear.set_data(func=func)
 dLinear.set_model(stl=True)
-#dLinear.load_modal("dlinear(stl+rw_v1)_HUFL_input100_output100")
+#dLinear.load_modal("dlinear(stl+rw_v2)_EUR-GBP_Value_input100_output100")
 # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-dLinear.train(num_epochs =  1000, gpu=True)
+dLinear.train(num_epochs =  100, gpu=True)
 # print(summary(dLinear))
 
 
@@ -52,7 +52,8 @@ def test1():
     plt.ylabel(column_name, fontsize=14)
     dLinear.MAE(data_set=data_set)
     dLinear.MAPE(data_set=data_set)
-    plt.show()
+    plt.savefig(f'results/rw_results/{dataset_name}_{column_name}_test1')
+    # plt.show()
     #plt.savefig(model_name+"2", dpi=1000)
     
     

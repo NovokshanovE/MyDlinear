@@ -131,7 +131,7 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear(stl+rw_v2)_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear(test2)_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
