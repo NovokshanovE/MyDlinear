@@ -13,23 +13,24 @@ from statsmodels.tsa.seasonal import STL
 
 def func(x):
     return 0.01*np.sin(x/10)#1.3*x+10#np.sin(x)/100
-data_set = 4000
+data_set = 11000
 input_size = 100
 output_size = 100
 learning_rate = 0.001
 step = 1
-data_size = 3000
-column_name = 'Value'
-dataset_name = 'EUR-GBP'
+data_size = 10000
+column_name = 'value'
+dataset_name = 'dataset_1'
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = data_size, column_name=column_name, dataset_name = dataset_name)
 data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
-#data = dLinear.set_data(func=func)
-dLinear.set_model(stl=True)
-#dLinear.load_modal("dlinear(stl+rw_v2)_EUR-GBP_Value_input100_output100")
-# dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-dLinear.train(num_epochs =  100, gpu=True)
-# print(summary(dLinear))
 
+# print(summary(dLinear))
+def train():
+    #data = dLinear.set_data(func=func)
+    dLinear.set_model(stl=True)
+    #dLinear.load_modal("dlinear(stl+rw_v2)_EUR-GBP_Value_input100_output100")
+    # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
+    dLinear.train(num_epochs =  1000, gpu=True)
 
 
 
@@ -156,12 +157,12 @@ def random_walk(
 def test_rw():
     plt.rcParams["figure.figsize"] = (12,9)
     plt.rcParams.update({'font.size': 14})
-    res = random_walk(df_size=5000, step_size=0.1, threshold=0.5, start_value=10)
+    res = random_walk(df_size=15000, step_size=0.1, threshold=0.5, start_value=10)
     res.to_csv(path_or_buf="dataset_1.csv")
     
     plt.plot(res, 'g')
     
-    plt.show()
+    plt.savefig("dataset_view")
 
-
+train()
 test1()
