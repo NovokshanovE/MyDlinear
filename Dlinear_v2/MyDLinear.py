@@ -202,6 +202,7 @@ class DLinear:
         criterion = nn.L1Loss()
         window_size = self.input_size  
         dataset = MyDataset(self.X, window_size, self.output_size)
+        print(f"Len Dataset = {len(dataset)}")
         dataloader = DataLoader(dataset)#, shuffle=True)
         len(dataloader)
         self.train_model(self.model, dataloader, criterion, optimizer, num_epochs=num_epochs)
