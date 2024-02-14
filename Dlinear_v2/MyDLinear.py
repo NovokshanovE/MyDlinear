@@ -16,7 +16,7 @@ import numpy as np
 from statsmodels.tsa.seasonal import STL
 # import intel_extension_for_pytorch as ipex
 # from decomposition import DecompositionLayer
-torch.set_num_threads(10)
+#torch.set_num_threads(10)
 # from statsmodels.tsa.seasonal import seasonal_decompose
 
 
@@ -111,7 +111,7 @@ class DecompositionLayer(nn.Module):
     
 class DLinear:
     def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset'):
-        torch.set_num_threads(20)
+        torch.set_num_threads(16)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print('Using device:', device)
         print()
