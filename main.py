@@ -27,7 +27,7 @@ data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_na
 # print(summary(dLinear))
 def train():
     #data = dLinear.set_data(func=func)
-    dLinear.set_model(stl=True)
+    dLinear.set_model(stl=False)
     #dLinear.load_modal("dlinear(stl+rw_v2)_EUR-GBP_Value_input100_output100")
     # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
     dLinear.train(num_epochs =  1000, gpu=True)

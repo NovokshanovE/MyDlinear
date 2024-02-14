@@ -111,7 +111,7 @@ class DecompositionLayer(nn.Module):
     
 class DLinear:
     def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset'):
-        torch.set_num_threads(16)
+        #torch.set_num_threads(16)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print('Using device:', device)
         print()
@@ -131,7 +131,7 @@ class DLinear:
         # self.m = 10 #на сколько шагов предсказать
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear(test2)_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear(test2_MA)_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
         # self.data = None
         # self.X = None
