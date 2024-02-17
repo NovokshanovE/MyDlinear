@@ -163,6 +163,18 @@ def test_rw():
     plt.plot(res, 'g')
     
     plt.savefig("dataset_view")
+def plot(file_name, column_name):
+    X = pd.read_csv(file_name).value
+    # X = torch.tensor(self.data[self.column_name].values[:self.data_size:self.step], dtype=torch.float32).view(-1, 1)
+    plt.rcParams["figure.figsize"] = (12,9)
+    plt.rcParams.update({'font.size': 14})
+    plt.plot(X[:11000], 'g')
+    plt.grid(visible=True)
+    plt.xlabel('Временные точки', fontsize=14)
+    plt.ylabel(column_name, fontsize=14)
+    plt.savefig("dataset_view")
 
-train()
-test1()
+if __name__ == "__main__":
+    plot("dataset_1.csv", "value")
+    # train()
+    # test1()
