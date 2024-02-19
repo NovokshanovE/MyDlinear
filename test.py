@@ -1,15 +1,26 @@
-import time
 
-import numpy as np
-import torch
-torch.set_num_threads(1)
-INDEX = 10000
-NELE = 1000
-a = torch.rand(INDEX, NELE)
-index = np.random.randint(INDEX-1, size=INDEX*8)
-b = torch.from_numpy(index)
+from scipy.optimize import linprog
 
-start = time.time()
-for _ in range(10):
-    res = a.index_select(0, b)
-print("the number of cpu threads: {}, time: {}".format(torch.get_num_threads(), time.time()-start))
+# Коэффициенты целевой функции (в данном случае, мы максимизируем объем, поэтому все коэффициенты равны 0)
+c = [0, 0, 0]
+
+# Коэффициенты левых частей ограничений
+A = [
+    [0, -1, 1],  # x3 >= x2 - 8
+    [1, -4, -5],  # 5x3 >= x1 - 4x2 - 4
+    [-1, -3, 0],  # -3x2 >= -x1 - 3
+]
+
+# Правые части ограничений
+b = [-8, 6, 3]
+
+# Задача линейного программирования
+result = linprog(c, A_ub=A, b_ub=b, method='highs')
+
+# Вывод результатов
+print("Результат оптимизации:")
+print(result)
+
+# Объем многогранника равен отрицательному значению целевой функции (так как мы максимизируем объем)
+volume = -result.fun
+print("Объем многогранника:", round(volume, 2))
