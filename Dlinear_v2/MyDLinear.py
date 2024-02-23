@@ -148,29 +148,16 @@ class DLinear:
         self.output_size = output_size
         self.data_size  = data_size
         self.step = step
-        # self.m = 10 #на сколько шагов предсказать
+
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear(test2_MA)_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear({datetime.datetime.now()})_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
         self.model = None
-        # self.data = None
-        # self.X = None
-        # self.x = None
     def train_model(self, model, dataloader, criterion, optimizer, num_epochs=100):
         with alive_bar(num_epochs) as bar:
             for epoch in range(num_epochs):
-                # bar = statusbar.StatusBar("Status")
-                
-                # bar.add_progress(epoch, "#")
-                # bar.add_progress(num_epochs-epoch*10, ".")
-                # print(" ", bar.format_status())
-                #print(f"Epoch = {epoch}", end = '\r')
-                # declare your expected total
-                            # <<-- your original loop
-                # print(epoch, end='\r')
-                           # process each item
+
                 bar()
-                                  # call `bar()` at the end
                 
                 for X, Y in dataloader:
                     
