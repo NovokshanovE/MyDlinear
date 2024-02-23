@@ -41,6 +41,26 @@ class DLinearModel(nn.Module):
         seasonal, trend = self.decomposition(x)
         return seasonal, trend
     
+class OneLayerModel(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(OneLayerModel, self).__init__()
+        self.linear = nn.Linear(input_size, output_size)
+        
+        
+        # self.bias = nn.Parameter(torch.zeros(1))
+        
+    def forward(self, context):
+        # seasonal, trend = self.decomposition(context)
+        #print(seasonal, trend)
+        # seasonal_output = self.linear_seasonal(seasonal.reshape(1, 1, -1))
+        output = self.linear(context.reshape(1, 1, -1))
+        
+        return output
+    
+    def decompos(self, x):
+        seasonal, trend = self.decomposition(x)
+        return seasonal, trend
+    
 class DLinearModelSTL(nn.Module):
     def __init__(self, input_size, output_size):
         super(DLinearModelSTL, self).__init__()
@@ -111,7 +131,7 @@ class DecompositionLayer(nn.Module):
     
 class DLinear:
     def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset'):
-        torch.set_num_threads(8)
+        torch.set_num_threads(20)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print('Using device:', device)
         print()
@@ -178,19 +198,33 @@ class DLinear:
     def set_data(self, df):
         self.data = df
         self.X = torch.tensor(self.data.values[:self.data_size:self.step], dtype=torch.float32).view(-1, 1)
-    def set_model(self, stl = False):
+    def set_model(self, type = "ma"):
         """This method set model.
-        stl = true if you want to use stl model with stl decomposition.
+        type:
+            "stl": DLinear winth STL decomposition,
+            "ma":  DLinear winth MA decomposition,
+            "one_layer": One Layer model.
 
         Args:
             stl (bool, optional): set model type. Defaults to false.
         """
-        if stl:
-            self.model = DLinearModelSTL(self.input_size, self.output_size)
-            self.model_name += "STL"
-        else:
+        def ma_model():
             self.model = DLinearModel(self.input_size, self.output_size)
             self.model_name += "MA"
+        def stl_model():
+            self.model = DLinearModelSTL(self.input_size, self.output_size)
+            self.model_name += "STL"
+        def oneLayer_model():
+            self.model = OneLayerModel(self.input_size, self.output_size)
+            self.model_name += "oneLayer"
+
+        setting = {
+            "stl": stl_model,
+            "ma": ma_model,
+            "one_layer": oneLayer_model
+        }
+        setting[type]()
+            
     def train(self, num_epochs = 100, gpu=False):
         # if gpu:
         #     optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)

@@ -18,16 +18,16 @@ input_size = 100
 output_size = 100
 learning_rate = 0.001
 step = 1
-data_size = 10000
-column_name = 'value'
-dataset_name = 'dataset_1'
+data_size = 6000
+column_name = 'HUFL'
+dataset_name = 'ETTh1'
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = data_size, column_name=column_name, dataset_name = dataset_name)
 data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
 
 # print(summary(dLinear))
 def train():
     #data = dLinear.set_data(func=func)
-    dLinear.set_model(stl=True)
+    dLinear.set_model(type="ma")
     #dLinear.load_modal("dlinear(stl+rw_v2)_EUR-GBP_Value_input100_output100")
     # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
     dLinear.train(num_epochs =  1000, gpu=True)
@@ -42,7 +42,7 @@ def test1():
     plt.rcParams["figure.figsize"] = (12,9)
     plt.rcParams.update({'font.size': 14})
     plt.plot(time, data[column_name].values[data_set-output_size*step:data_set+(output_size)*step:step])
-    #plt.plot(, )
+    #plt.plot(, ) 
     # pred = data[column_name].values[data_set-1]
     time = [data_set+1+i*step for i in range(output_size)]
 
@@ -53,7 +53,7 @@ def test1():
     plt.ylabel(column_name, fontsize=14)
     dLinear.MAE(data_set=data_set)
     dLinear.MAPE(data_set=data_set)
-    plt.savefig(f'results/rw_results/{dataset_name}_{column_name}_test1_stl')
+    plt.savefig(f'results/rw_results/{dataset_name}_{column_name}_test1_ma')
     # plt.show()
     #plt.savefig(model_name+"2", dpi=1000)
     
