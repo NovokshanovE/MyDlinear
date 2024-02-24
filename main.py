@@ -25,6 +25,9 @@ dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = data_
 data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
 # data = None
 # print(summary(dLinear))
+
+
+
 def train():
     #data = dLinear.set_data(func=func)
     dLinear.set_model(type="ma")
