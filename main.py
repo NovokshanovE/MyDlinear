@@ -13,14 +13,15 @@ from statsmodels.tsa.seasonal import STL
 
 def func(x):
     return 0.01*np.sin(x/10)#1.3*x+10#np.sin(x)/100
-data_set = 4000
+data_set = 14100
 input_size = 100
 output_size = 100
 learning_rate = 0.001
 step = 1
-data_size = 3000
+data_size = 14000
 column_name = 'value'
-dataset_name = 'dataset'
+dataset_name = 'dataset_1'
+type = "ma"
 dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = data_size, column_name=column_name, dataset_name = dataset_name)
 data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
 # data = None
@@ -30,8 +31,8 @@ data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_na
 
 def train():
     #data = dLinear.set_data(func=func)
-    dLinear.set_model(type="ma")
-    dLinear.load_modal("dlinear(2024-02-23 16:54:53.039394)_dataset_1_value_input100_output100MA")
+    dLinear.set_model(type=type)
+    dLinear.load_modal("dlinear(2024-02-23_16-54-53-039394)_dataset_1_value_input100_output100MA")
     # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
     # dLinear.train(num_epochs =  1000, gpu=True)
 
@@ -56,7 +57,8 @@ def test1():
     plt.ylabel(column_name, fontsize=14)
     dLinear.MAE(data_set=data_set)
     dLinear.MAPE(data_set=data_set)
-    plt.savefig(f'results/rw_results/{dataset_name}_{column_name}_test_{datetime.datetime.now().date()}_one_layer')
+    plt.ylim([10,30])
+    plt.savefig(f'results/rw_results/{dataset_name}_{column_name}_{data_set}_test_{datetime.datetime.now().date()}_{datetime.datetime.now().hour}_{datetime.datetime.now().minute}_{type}')
     # plt.show()
     #plt.savefig(model_name+"2", dpi=1000)
     
