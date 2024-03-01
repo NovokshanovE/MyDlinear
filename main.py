@@ -1,6 +1,8 @@
 
 # import torch
 import random
+
+from sympy import N, false
 from Dlinear_v2.MyDLinear import DLinear
 import datetime
 import matplotlib.pyplot as plt
@@ -37,6 +39,19 @@ def train():
     # dLinear.train(num_epochs =  1000, gpu=True)
 
 
+def delta_horisontal_line_mae(predict, real)-> int:
+    res = 0
+    for i in predict:
+        res += np.abs(i-real)
+    print(f"Delta MAE: {res/len(predict)}")
+    return res/len(predict)
+
+def delta_horisontal_line_mape(predict, real)-> int:
+    res = 0
+    for i in predict:
+        res += np.abs((i-real)/real)
+    print(f"Delta MAPE: {res/len(predict)}")
+    return res/len(predict)
 
 def test1():
     future_predictions = dLinear.prediction(data_set)
@@ -57,8 +72,10 @@ def test1():
     plt.ylabel(column_name, fontsize=14)
     dLinear.MAE(data_set=data_set)
     dLinear.MAPE(data_set=data_set)
-    plt.ylim([10,30])
-    plt.savefig(f'results/rw_results/{dataset_name}_{column_name}_{data_set}_test_{datetime.datetime.now().date()}_{datetime.datetime.now().hour}_{datetime.datetime.now().minute}_{type}')
+    delta_horisontal_line_mae(future_predictions, data[column_name].values[data_set])
+    delta_horisontal_line_mape(future_predictions, data[column_name].values[data_set])
+    plt.ylim([data[column_name].values[data_set]-10,data[column_name].values[data_set]+10])
+    plt.savefig(f'results/rw_results/test_{datetime.datetime.now().date()}_{datetime.datetime.now().hour}_{datetime.datetime.now().minute}_{dataset_name}_{column_name}_{data_set}_{type}')
     # plt.show()
     #plt.savefig(model_name+"2", dpi=1000)
     
@@ -159,15 +176,19 @@ def random_walk(
     return df
 
 
-def test_rw():
-    plt.rcParams["figure.figsize"] = (12,9)
-    plt.rcParams.update({'font.size': 14})
-    res = random_walk(df_size=15000, step_size=0.1, threshold=0.5, start_value=10)
-    res.to_csv(path_or_buf="dataset_1.csv")
+def create_rw_ts(name: str, graph: bool, step_size: int):
+
+    res = random_walk(df_size=20000, step_size=step_size, threshold=0.5, start_value=10)
+    res.to_csv(path_or_buf=name+".csv")
     
-    plt.plot(res, 'g')
     
-    plt.savefig("dataset_view")
+    if graph:
+        plt.rcParams["figure.figsize"] = (12,9)
+        plt.rcParams.update({'font.size': 14})
+        plt.plot(res, 'g')
+        plt.savefig("dataset_view")
+
+
 def plot(file_name, column_name):
     X = pd.read_csv(file_name).value
     # X = torch.tensor(self.data[self.column_name].values[:self.data_size:self.step], dtype=torch.float32).view(-1, 1)
@@ -179,8 +200,50 @@ def plot(file_name, column_name):
     plt.ylabel(column_name, fontsize=14)
     plt.savefig("dataset_view")
 
+
+
+
+
+def train_model(model: str, test_preferences: dict, rw_range: list, dataset_generation: bool, train_preferences: dict):
+    """About train_model
+
+    Args:
+        model (str): type of model. Example: "ma", "stl", "base";
+        set_data (int): set data to test;
+        size_data (int): set data to learning;
+        rw_range (list): range to create new dataset for tests.
+    """
+    if dataset_generation:
+
+        for i in range(rw_range[0], rw_range[1]):
+            """ 
+                Generate/create new test dataset
+            """
+            create_rw_ts(name=f"test_ds_({i/10})", graph=false, step_size=i/10)
+    if train_preferences:
+        data_set = train_preferences["set_data"]
+        input_size = train_preferences["input_size"]
+        output_size = train_preferences["output_size"]
+        learning_rate = train_preferences["learning_rate"]
+        step = train_preferences["step"]
+        data_size = train_preferences["data_size"]
+        column_name = train_preferences["column_name"]
+        dataset_name = 'dataset_1'
+        type = train_preferences["model_type"]
+        dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = data_size, column_name=column_name, dataset_name = dataset_name)
+        data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
+        #data = dLinear.set_data(func=func)
+        dLinear.set_model(type=type)
+        dLinear.load_modal("dlinear(2024-02-23_16-54-53-039394)_dataset_1_value_input100_output100MA")
+        # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
+        # dLinear.train(num_epochs =  1000, gpu=True)
+    
+
+
+
 if __name__ == "__main__":
+    pass
     # dLinear.set_model(stl=False)
     #plot("dataset_1.csv", "value")
-    train()
-    test1()
+    # train()
+    # test1()
