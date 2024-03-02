@@ -151,7 +151,7 @@ class DLinear:
 
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear({datetime.datetime.now()})_{dataset_name}_{self.column_name}_input{self.input_size}_output{self.output_size}"
+        self.model_name = f"dlinear_(name_ds{dataset_name})_size{self.data_size}"
         self.model = None
     def train_model(self, model, dataloader, criterion, optimizer, num_epochs=100):
         with alive_bar(num_epochs) as bar:
@@ -322,6 +322,7 @@ class DLinear:
         X_t = X_f.tolist()
         # predicted_values = []
         X = torch.tensor([X_t])
+        
         prediction = self.model(X)
         #print(prediction)
         self.predicted_values = prediction.tolist()[-1][-1]
