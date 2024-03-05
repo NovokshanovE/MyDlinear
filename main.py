@@ -264,5 +264,5 @@ if __name__ == "__main__":
     test_p = {
 
     }
-    train_model(train_preferences=train_p, rw_range=[1,10], dataset_generation=True)
+    train_model(train_preferences=train_p, rw_range=[1,5], dataset_generation=False)
     # test1()
