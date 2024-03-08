@@ -1,6 +1,7 @@
 
 # import torch
 import random
+from turtle import title
 
 from sympy import N, false
 from Dlinear_v2.MyDLinear import DLinear
@@ -12,7 +13,7 @@ import pandas as pd
 from statsmodels.tsa.seasonal import STL
 # from torchvision import models
 # from torchsummary import summary
-def base_tast():
+def base_test():
     def func(x):
         return 0.01*np.sin(x/10)#1.3*x+10#np.sin(x)/100
     data_set = 14100
@@ -201,7 +202,26 @@ def plot(file_name, column_name):
     plt.savefig("dataset_view")
 
 
+def delta_horisontal_line_mae(predict, real)-> int:
+        res = 0
+        for i in predict:
+            res += np.abs(i-real)
+        print(f"Delta MAE: {res/len(predict)}")
+        return res/len(predict)
 
+def delta_horisontal_line_mape(predict, real)-> int:
+    res = 0
+    for i in predict:
+        res += np.abs((i-real)/real)
+    print(f"Delta MAPE: {res/len(predict)}")
+    return res/len(predict)
+
+def delta_horisontal_line_mse(predict, real)-> int:
+    res = 0
+    for i in predict:
+        res += np.power((i-real)/real, 2)
+    print(f"Delta MAPE: {res/len(predict)}")
+    return res/len(predict)
 
 
 def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset_generation: bool = False, train_preferences: dict = None):
@@ -245,6 +265,78 @@ def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset
 
     
 
+def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
+    data_set = test_preferences["set_data"]
+    input_size = test_preferences["input_size"]
+    output_size = test_preferences["output_size"]
+    learning_rate = test_preferences["learning_rate"]
+    step = test_preferences["step"]
+    # data_size = train_preferences["data_size"]
+    column_name = test_preferences["column_name"]
+    type = test_preferences["model_type"]
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 20))
+    for i in range(rw_range[0], rw_range[1]):
+        mae = []
+        mse = []
+        mape = []
+
+        for d_size in test_preferences["data_size"]:
+
+            dataset_name = f"test_ds_({i/10})"
+            model_name = f"dlinear_(name_ds{dataset_name})_size{d_size}"
+            def ma_model(model_name):
+                
+                model_name += "MA"
+                return model_name
+            
+            def stl_model(model_name):
+                
+                model_name += "STL"
+                return model_name
+            
+            def oneLayer_model(model_name):
+                
+                model_name += "oneLayer"
+                return model_name
+
+            setting = {
+                "stl": stl_model,
+                "ma": ma_model,
+                "one_layer": oneLayer_model
+            }
+            model_name = setting[type](model_name)
+            dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = d_size, column_name=column_name, dataset_name = dataset_name)
+            data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
+            dLinear.set_model(type=type)
+            dLinear.load_modal(model_name)
+            future_predictions = dLinear.prediction(data_set)
+            print(f"--------------\nstep={i/10} d_size={d_size}")
+            
+            mae.append(delta_horisontal_line_mae(future_predictions, data[column_name].values[data_set]))
+            mape.append(delta_horisontal_line_mape(future_predictions, data[column_name].values[data_set]))
+            mse.append(delta_horisontal_line_mse(future_predictions, data[column_name].values[data_set]))
+
+        
+        
+    
+        ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
+        ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
+        ax3.plot(test_preferences["data_size"],mape, label=f'{i/10}')
+        ax1.legend()
+        ax2.legend()
+        ax3.legend()
+        ax1.set_xlabel("data size")
+        ax2.set_xlabel("data size")
+        ax3.set_xlabel("data size")
+        ax1.set_ylabel("deviation")
+        ax2.set_ylabel("deviation")
+        ax3.set_ylabel("deviation")
+        ax1.set_title("mae")
+        ax2.set_title("mse")
+        ax3.set_title("mape")
+        # fig.colorbar()
+        plt.savefig("tests")
+
 
 
 if __name__ == "__main__":
@@ -262,7 +354,15 @@ if __name__ == "__main__":
         "model_type": "ma",
     }
     test_p = {
-
+        "set_data": 17000,
+        "input_size": 100,
+        "output_size": 100,
+        "learning_rate": 0.00001,
+        "step": 1,
+        "data_size": [7000, 8000, 9000, 10000, 11000, 12000],
+        "column_name": "value",
+        "model_type": "ma",
     }
-    train_model(train_preferences=train_p, rw_range=[1,5], dataset_generation=False)
+    # train_model(train_preferences=train_p, rw_range=[1,5], dataset_generation=False)
     # test1()
+    test_dependencies(test_preferences=test_p, rw_range=[1,5])
