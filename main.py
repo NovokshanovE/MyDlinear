@@ -4,6 +4,7 @@ import random
 from turtle import title
 
 from sympy import N, false
+from traitlets import dlink
 from Dlinear_v2.MyDLinear import DLinear
 import datetime
 import matplotlib.pyplot as plt
@@ -199,28 +200,32 @@ def plot(file_name, column_name):
     plt.grid(visible=True)
     plt.xlabel('Временные точки', fontsize=14)
     plt.ylabel(column_name, fontsize=14)
-    plt.savefig("dataset_view")
+    plt.savefig(f"dataset_view_{file_name.split('.')[0]+file_name.split('.')[1]}")
+    plt.close()
 
 
-def delta_horisontal_line_mae(predict, real)-> int:
+def delta_horisontal_line_mae(predict, real, output)-> int:
         res = 0
         for i in predict:
             res += np.abs(i-real)
-        print(f"Delta MAE: {res/len(predict)}")
+        if output:
+            print(f"Delta MAE: {res/len(predict)}")
         return res/len(predict)
 
-def delta_horisontal_line_mape(predict, real)-> int:
+def delta_horisontal_line_mape(predict, real, output)-> int:
     res = 0
     for i in predict:
         res += np.abs((i-real)/real)
-    print(f"Delta MAPE: {res/len(predict)}")
+    if output: 
+        print(f"Delta MAPE: {res/len(predict)}")
     return res/len(predict)
 
-def delta_horisontal_line_mse(predict, real)-> int:
+def delta_horisontal_line_mse(predict, real, output)-> int:
     res = 0
     for i in predict:
         res += np.power((i-real)/real, 2)
-    print(f"Delta MAPE: {res/len(predict)}")
+    if output:
+        print(f"Delta MAPE: {res/len(predict)}")
     return res/len(predict)
 
 
@@ -262,11 +267,47 @@ def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset
                 # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
                 dLinear.train(num_epochs =  1000, gpu=True)
     
+def model_settings(preferences, cur_d_size, cur_step):
+    dataset_name = f"test_ds_({cur_step/10})"
+    model_name = f"dlinear_(name_ds{dataset_name})_size{cur_d_size}"
+    set_data = preferences["set_data"]
+    input_size = preferences["input_size"]
+    output_size = preferences["output_size"]
+    learning_rate = preferences["learning_rate"]
+    step = preferences["step"]
+    # data_size = train_preferences["data_size"]
+    column_name = preferences["column_name"]
+    type = preferences["model_type"]
+    def ma_model(model_name):
+                    
+        model_name += "MA"
+        return model_name
+    
+    def stl_model(model_name):
+        
+        model_name += "STL"
+        return model_name
+    
+    def oneLayer_model(model_name):
+        
+        model_name += "oneLayer"
+        return model_name
 
+    setting = {
+        "stl": stl_model,
+        "ma": ma_model,
+        "one_layer": oneLayer_model
+    }
+    model_name = setting[type](model_name)
+    dLinear = DLinear(input_size, output_size, step = 1, data_size = cur_d_size, column_name=column_name, dataset_name = dataset_name)
+    data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
+    dLinear.set_model(type=type)
+    dLinear.load_modal(model_name)
+    return dLinear, data
     
 
 def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
-    data_set = test_preferences["set_data"]
+    set_data = test_preferences["set_data"]
     input_size = test_preferences["input_size"]
     output_size = test_preferences["output_size"]
     learning_rate = test_preferences["learning_rate"]
@@ -275,50 +316,65 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
     column_name = test_preferences["column_name"]
     type = test_preferences["model_type"]
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 20))
+    
     for i in range(rw_range[0], rw_range[1]):
         mae = []
         mse = []
         mape = []
 
         for d_size in test_preferences["data_size"]:
+            mae_mean = []
+            mape_mean = []
+            mse_mean = []
+            for data_set in range(set_data[0],set_data[1],set_data[2]):
 
-            dataset_name = f"test_ds_({i/10})"
-            model_name = f"dlinear_(name_ds{dataset_name})_size{d_size}"
-            def ma_model(model_name):
+                # dataset_name = f"test_ds_({i/10})"
+                # model_name = f"dlinear_(name_ds{dataset_name})_size{d_size}"
+                # def ma_model(model_name):
+                    
+                #     model_name += "MA"
+                #     return model_name
                 
-                model_name += "MA"
-                return model_name
-            
-            def stl_model(model_name):
+                # def stl_model(model_name):
+                    
+                #     model_name += "STL"
+                #     return model_name
                 
-                model_name += "STL"
-                return model_name
-            
-            def oneLayer_model(model_name):
-                
-                model_name += "oneLayer"
-                return model_name
+                # def oneLayer_model(model_name):
+                    
+                #     model_name += "oneLayer"
+                #     return model_name
 
-            setting = {
-                "stl": stl_model,
-                "ma": ma_model,
-                "one_layer": oneLayer_model
-            }
-            model_name = setting[type](model_name)
-            dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = d_size, column_name=column_name, dataset_name = dataset_name)
-            data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
-            dLinear.set_model(type=type)
-            dLinear.load_modal(model_name)
-            future_predictions = dLinear.prediction(data_set)
-            print(f"--------------\nstep={i/10} d_size={d_size}")
-            
-            mae.append(delta_horisontal_line_mae(future_predictions, data[column_name].values[data_set]))
-            mape.append(delta_horisontal_line_mape(future_predictions, data[column_name].values[data_set]))
-            mse.append(delta_horisontal_line_mse(future_predictions, data[column_name].values[data_set]))
+                # setting = {
+                #     "stl": stl_model,
+                #     "ma": ma_model,
+                #     "one_layer": oneLayer_model
+                # }
+                # model_name = setting[type](model_name)
+                # dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = d_size, column_name=column_name, dataset_name = dataset_name)
+                # data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
+                dLinear, data = model_settings(test_dependencies, d_size, i)
+                
+                future_predictions = dLinear.prediction(data_set)
+                # print(f"--------------\nstep={i/10} d_size={d_size} set_data= {data_set}")
+                mae_mean.append(delta_horisontal_line_mae(future_predictions, data[column_name].values[data_set], false))
+                mape_mean.append(delta_horisontal_line_mape(future_predictions, data[column_name].values[data_set], false))
+                mse_mean.append(delta_horisontal_line_mse(future_predictions, data[column_name].values[data_set], false))
+                
+            mae.append(sum(mae_mean)/len(mae_mean))
+            mape.append(sum(mape_mean)/len(mape_mean))
+            mse.append(sum(mse_mean)/len(mse_mean))
 
         
+
+        # print(f"Quantile MAE 25 step={i/10}: {np.quantile(mae, 0.25)}")
+        # print(f"Quantile MAE 75 step={i/10}: {np.quantile(mae, 0.75)}")
+        # print(f"Quantile MAPE 25 step={i/10}: {np.quantile(mape, 0.25)}")
+        # print(f"Quantile MAPE 75 step={i/10}: {np.quantile(mape, 0.75)}")
+        # print(f"Quantile MSE 25 step={i/10}: {np.quantile(mse, 0.25)}")
+        # print(f"Quantile MSE 75 step={i/10}: {np.quantile(mse, 0.75)}")
         
-    
+
         ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
         ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
         ax3.plot(test_preferences["data_size"],mape, label=f'{i/10}')
@@ -335,16 +391,18 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         ax2.set_title("mse")
         ax3.set_title("mape")
         # fig.colorbar()
-        plt.savefig("tests")
+        plt.savefig("tests_3_(solve_quantile)")
 
 
+
+# def quantile_for_dataset()
 
 if __name__ == "__main__":
     # pass
     # dLinear.set_model(stl=False)
     #plot("dataset_1.csv", "value")
     train_p = {
-        "set_data": 17000,
+        "set_data": (15000, 19000, 100),
         "input_size": 100,
         "output_size": 100,
         "learning_rate": 0.00001,
@@ -354,7 +412,7 @@ if __name__ == "__main__":
         "model_type": "ma",
     }
     test_p = {
-        "set_data": 17000,
+        "set_data": (13000, 19700, 100),
         "input_size": 100,
         "output_size": 100,
         "learning_rate": 0.00001,
@@ -365,4 +423,12 @@ if __name__ == "__main__":
     }
     # train_model(train_preferences=train_p, rw_range=[1,5], dataset_generation=False)
     # test1()
+
     test_dependencies(test_preferences=test_p, rw_range=[1,5])
+
+    # for i in range(1, 5):
+    #     plot(f"test_ds_({i/10}).csv", "value")
+
+    # a = np.array([10, 7, 4])
+
+    # print(np.quantile(a, 0.75))

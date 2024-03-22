@@ -130,18 +130,19 @@ class DecompositionLayer(nn.Module):
         return x_seasonal, x_trend
     
 class DLinear:
-    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset'):
+    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset', info = False):
         torch.set_num_threads(8)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print('Using device:', device)
-        print()
+        if info:
+            print('Using device:', device)
+            print()
 
-        #Additional Info when using cuda
-        if device.type == 'cuda':
-            print(torch.cuda.get_device_name(0))
-            print('Memory Usage:')
-            print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
-            print('Cached:   ', round(torch.cuda.memory_reserved(0)/1024**3,1), 'GB')
+            #Additional Info when using cuda
+            if device.type == 'cuda':
+                print(torch.cuda.get_device_name(0))
+                print('Memory Usage:')
+                print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
+                print('Cached:   ', round(torch.cuda.memory_reserved(0)/1024**3,1), 'GB')
         self.input_size = input_size
         self.pred = self.input_size
         self.learning_rate = learning_rate
