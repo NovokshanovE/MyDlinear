@@ -130,7 +130,7 @@ class DecompositionLayer(nn.Module):
         return x_seasonal, x_trend
     
 class DLinear:
-    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset', info = False):
+    def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset', info = True):
         torch.set_num_threads(8)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if info:

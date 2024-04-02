@@ -4,7 +4,7 @@ import random
 from turtle import title
 
 from sympy import N, false
-from traitlets import dlink
+# from traitlets import dlink
 from Dlinear_v2.MyDLinear import DLinear
 import datetime
 import matplotlib.pyplot as plt
@@ -446,7 +446,7 @@ if __name__ == "__main__":
         "column_name": "value",
         "model_type": "ma",
     }
-    train_model(train_preferences=None, rw_range=[1,5], dataset_generation=True)
+    train_model(train_preferences=train_p, rw_range=[1,5], dataset_generation=True)
     # test1()
 
     # test_dependencies(test_preferences=test_p, rw_range=[1,5])
