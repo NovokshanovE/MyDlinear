@@ -259,7 +259,7 @@ def model_settings(preferences, cur_d_size, cur_step, k):
         "one_layer": oneLayer_model
     }
     model_name = setting[type](model_name)
-    dLinear = DLinear(input_size, output_size, step = 1, data_size = cur_d_size, column_name=column_name, dataset_name = dataset_name)
+    dLinear = DLinear(input_size, output_size, step = 1, data_size = cur_d_size, column_name=column_name, dataset_name = dataset_name, info=False)
     data = dLinear.data_reader(file_name="dataset/random_datasets/"+dataset_name +'.csv', column_name=column_name)
     dLinear.set_model(type=type)
     dLinear.load_modal("saving_models/test2/"+model_name)
@@ -331,43 +331,46 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
             mape_mean = []
             mse_mean = []
             
-            for k in range(10):
-                data_set = 13000
-                # dataset_name = f"test_ds_({i/10})_{k}"
-                # model_name = f"dlinear_(name_ds{dataset_name})_size{d_size}"
-                # def ma_model(model_name):
-                    
-                #     model_name += "MA"
-                #     return model_name
+            for data_set in range(set_data[0], set_data[1], set_data[2]):
+                for k in range(10):
                 
-                # def stl_model(model_name):
+                    # data_set = 13000
+                    # dataset_name = f"test_ds_({i/10})_{k}"
+                    # model_name = f"dlinear_(name_ds{dataset_name})_size{d_size}"
+                    # def ma_model(model_name):
+                        
+                    #     model_name += "MA"
+                    #     return model_name
                     
-                #     model_name += "STL"
-                #     return model_name
-                
-                # def oneLayer_model(model_name):
+                    # def stl_model(model_name):
+                        
+                    #     model_name += "STL"
+                    #     return model_name
                     
-                #     model_name += "oneLayer"
-                #     return model_name
+                    # def oneLayer_model(model_name):
+                        
+                    #     model_name += "oneLayer"
+                    #     return model_name
 
-                # setting = {
-                #     "stl": stl_model,
-                #     "ma": ma_model,
-                #     "one_layer": oneLayer_model
-                # }
-                # model_name = setting[type](model_name)
-                # dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = d_size, column_name=column_name, dataset_name = dataset_name)
-                # data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
-                dLinear, data = model_settings(test_preferences, d_size, i, k)
-                
-                # print(f"Quantile MAE 25 step={i/10}: {np.quantile(data[column_name].values, 0.25)}")
-                # print(f"Quantile MAE 75 step={i/10}: {np.quantile(data[column_name].values, 0.75)}")
-                
-                future_predictions = dLinear.prediction(data_set)
-                # print(f"--------------\nstep={i/10} d_size={d_size} set_data= {data_set}")
-                mae_mean.append(delta_horisontal_line_mae(future_predictions, data[column_name].values[data_set], false))
-                mape_mean.append(delta_horisontal_line_mape(future_predictions, data[column_name].values[data_set], false))
-                mse_mean.append(delta_horisontal_line_mse(future_predictions, data[column_name].values[data_set], false))
+                    # setting = {
+                    #     "stl": stl_model,
+                    #     "ma": ma_model,
+                    #     "one_layer": oneLayer_model
+                    # }
+                    # model_name = setting[type](model_name)
+                    # dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = d_size, column_name=column_name, dataset_name = dataset_name)
+                    # data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
+                    dLinear, data = model_settings(test_preferences, d_size, i, k)
+                    
+                    # print(f"Quantile MAE 25 step={i/10}: {np.quantile(data[column_name].values, 0.25)}")
+                    # print(f"Quantile MAE 75 step={i/10}: {np.quantile(data[column_name].values, 0.75)}")
+                    
+                    future_predictions = dLinear.prediction(data_set)
+                    # print(f"--------------\nstep={i/10} d_size={d_size} set_data= {data_set}")
+                    mae_mean.append(delta_horisontal_line_mae(future_predictions, data[column_name].values[data_set], false))
+                    mape_mean.append(delta_horisontal_line_mape(future_predictions, data[column_name].values[data_set], false))
+                    mse_mean.append(delta_horisontal_line_mse(future_predictions, data[column_name].values[data_set], false))
+            print(f"MAPE: {len(mape_mean)}")
             q_25.append(np.quantile(data[column_name].values[:d_size], 0.25))
             print(f"Quantile 25 step={i/10} size={d_size}: {q_25[-1]}")
             q_75.append(np.quantile(data[column_name].values[:d_size], 0.75))
@@ -375,6 +378,7 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
             mae.append(sum(mae_mean)/len(mae_mean))
             mape.append(sum(mape_mean)/len(mape_mean))
             mse.append(sum(mse_mean)/len(mse_mean))
+            # mae_mean = []
 
         
         print(f"Quantile 25 step={i/10}: {np.quantile(data[column_name].values, 0.25)}")
@@ -417,6 +421,9 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         # fig.close()
     
     print(q_25, q_75)
+    print(mae)
+    print(mape)
+    print(mse)
     
 def test_dependencies2(test_preferences: dict  = None, rw_range: list = [1,10]):
     if test_preferences:
@@ -460,7 +467,7 @@ if __name__ == "__main__":
         "model_type": "ma",
     }
     test_p = {
-        "set_data": 13000,
+        "set_data": (13000,14900, 150),
         "input_size": 100,
         "output_size": 100,
         "learning_rate": 0.00001,
