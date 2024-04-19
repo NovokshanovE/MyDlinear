@@ -227,8 +227,8 @@ def delta_horisontal_line_mse(predict, real, output)-> int:
     if output:
         print(f"Delta MAPE: {res/len(predict)}")
     return res/len(predict)
-def model_settings(preferences, cur_d_size, cur_step):
-    dataset_name = f"test_ds_({cur_step/10})"
+def model_settings(preferences, cur_d_size, cur_step, k):
+    dataset_name = f"test_ds_({cur_step/10})_{k}"
     model_name = f"dlinear_(name_ds{dataset_name})_size{cur_d_size}"
     # set_data = preferences["set_data"]
     input_size = preferences["input_size"]
@@ -260,9 +260,9 @@ def model_settings(preferences, cur_d_size, cur_step):
     }
     model_name = setting[type](model_name)
     dLinear = DLinear(input_size, output_size, step = 1, data_size = cur_d_size, column_name=column_name, dataset_name = dataset_name)
-    data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
+    data = dLinear.data_reader(file_name="dataset/random_datasets/"+dataset_name +'.csv', column_name=column_name)
     dLinear.set_model(type=type)
-    dLinear.load_modal("saving_models/group_of_models_by_step_size/"+model_name)
+    dLinear.load_modal("saving_models/test2/"+model_name)
     return dLinear, data
 
 def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset_generation: bool = False, train_preferences: dict = None):
@@ -331,9 +331,9 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
             mape_mean = []
             mse_mean = []
             
-            for data_set in range(set_data[0],set_data[1],set_data[2]):
-
-                # dataset_name = f"test_ds_({i/10})"
+            for k in range(10):
+                data_set = 13000
+                # dataset_name = f"test_ds_({i/10})_{k}"
                 # model_name = f"dlinear_(name_ds{dataset_name})_size{d_size}"
                 # def ma_model(model_name):
                     
@@ -358,7 +358,7 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
                 # model_name = setting[type](model_name)
                 # dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = d_size, column_name=column_name, dataset_name = dataset_name)
                 # data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
-                dLinear, data = model_settings(test_preferences, d_size, i)
+                dLinear, data = model_settings(test_preferences, d_size, i, k)
                 
                 # print(f"Quantile MAE 25 step={i/10}: {np.quantile(data[column_name].values, 0.25)}")
                 # print(f"Quantile MAE 75 step={i/10}: {np.quantile(data[column_name].values, 0.75)}")
@@ -397,26 +397,49 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         fig1.savefig("quantile")
 
         
-        # ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
-        # ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
-        # ax3.plot(test_preferences["data_size"],mape, label=f'{i/10}')
-        # ax1.legend()
-        # ax2.legend()
-        # ax3.legend()
-        # ax1.set_xlabel("data size")
-        # ax2.set_xlabel("data size")
-        # ax3.set_xlabel("data size")
-        # ax1.set_ylabel("deviation")
-        # ax2.set_ylabel("deviation")
-        # ax3.set_ylabel("deviation")
-        # ax1.set_title("mae")
-        # ax2.set_title("mse")
-        # ax3.set_title("mape")
-        # # fig.colorbar()
-        # fig.savefig("tests_4")
+        ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
+        ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
+        ax3.plot(test_preferences["data_size"],mape, label=f'{i/10}')
+        ax1.legend()
+        ax2.legend()
+        ax3.legend()
+        ax1.set_xlabel("data size")
+        ax2.set_xlabel("data size")
+        ax3.set_xlabel("data size")
+        ax1.set_ylabel("deviation")
+        ax2.set_ylabel("deviation")
+        ax3.set_ylabel("deviation")
+        ax1.set_title("mae")
+        ax2.set_title("mse")
+        ax3.set_title("mape")
+        # fig.colorbar()
+        fig.savefig("tests_4")
         # fig.close()
     
     print(q_25, q_75)
+    
+def test_dependencies2(test_preferences: dict  = None, rw_range: list = [1,10]):
+    if test_preferences:
+        data_set = test_preferences["set_data"]
+        input_size = test_preferences["input_size"]
+        output_size = test_preferences["output_size"]
+        learning_rate = test_preferences["learning_rate"]
+        step = test_preferences["step"]
+        # data_size = train_preferences["data_size"]
+        column_name = test_preferences["column_name"]
+        type = test_preferences["model_type"]
+        for d_size in test_preferences["data_size"]:
+            for i in range(rw_range[0], rw_range[1]):
+                for n in range(10):
+                    dataset_name = f"test_ds_({i/10})_{n}"
+                    dLinear = DLinear(data_set, input_size, output_size, step = step, data_size = d_size, column_name=column_name, dataset_name = dataset_name, learning_rate=learning_rate)
+                    # dataset_name = 'dataset_1'
+                    data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
+                    #data = dLinear.set_data(func=func)
+                    dLinear.set_model(type=type)
+                    # dLinear.load_modal("dlinear(2024-02-23_16-54-53-039394)_dataset_1_value_input100_output100MA")
+                    # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
+                    dLinear.train(num_epochs =  1000, gpu=True)
     
 
 
@@ -437,7 +460,7 @@ if __name__ == "__main__":
         "model_type": "ma",
     }
     test_p = {
-        "set_data": (13000, 19700, 10),
+        "set_data": 13000,
         "input_size": 100,
         "output_size": 100,
         "learning_rate": 0.00001,
@@ -446,7 +469,7 @@ if __name__ == "__main__":
         "column_name": "value",
         "model_type": "ma",
     }
-    train_model(train_preferences=train_p, rw_range=[1,5], dataset_generation=True)
+    test_dependencies(test_preferences=test_p, rw_range = [1,5])
     # test1()
 
     # test_dependencies(test_preferences=test_p, rw_range=[1,5])
