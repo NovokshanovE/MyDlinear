@@ -370,19 +370,19 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
                     mae_mean.append(delta_horisontal_line_mae(future_predictions, data[column_name].values[data_set], false))
                     mape_mean.append(delta_horisontal_line_mape(future_predictions, data[column_name].values[data_set], false))
                     mse_mean.append(delta_horisontal_line_mse(future_predictions, data[column_name].values[data_set], false))
-            print(f"MAPE: {len(mape_mean)}")
-            q_25.append(np.quantile(data[column_name].values[:d_size], 0.25))
-            print(f"Quantile 25 step={i/10} size={d_size}: {q_25[-1]}")
-            q_75.append(np.quantile(data[column_name].values[:d_size], 0.75))
-            print(f"Quantile 75 step={i/10} size={d_size}: {q_75[-1]}")
+            print(f"MAPE: {sum(mape_mean)/len(mape_mean)}")
+            # q_25.append(np.quantile(data[column_name].values[:d_size], 0.25))
+            # print(f"Quantile 25 step={i/10} size={d_size}: {q_25[-1]}")
+            # # q_75.append(np.quantile(data[column_name].values[:d_size], 0.75))
+            # print(f"Quantile 75 step={i/10} size={d_size}: {q_75[-1]}")
             mae.append(sum(mae_mean)/len(mae_mean))
             mape.append(sum(mape_mean)/len(mape_mean))
             mse.append(sum(mse_mean)/len(mse_mean))
             # mae_mean = []
-
-        
-        print(f"Quantile 25 step={i/10}: {np.quantile(data[column_name].values, 0.25)}")
-        print(f"Quantile 75 step={i/10}: {np.quantile(data[column_name].values, 0.75)}")
+            q_25.append(np.quantile(mape_mean, 0.25))
+            q_75.append(np.quantile(mape_mean, 0.75))
+            print(f"Quantile 25 step={i/10}: {np.quantile(mape_mean, 0.25)}")
+            print(f"Quantile 75 step={i/10}: {np.quantile(mape_mean, 0.75)}")
         # print(f"Quantile MAE 25 step={i/10}: {np.quantile(mae, 0.25)}")
         # print(f"Quantile MAE 75 step={i/10}: {np.quantile(mae, 0.75)}")
         # print(f"Quantile MAPE 25 step={i/10}: {np.quantile(mape, 0.25)}")
@@ -390,16 +390,19 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         # print(f"Quantile MSE 25 step={i/10}: {np.quantile(mse, 0.25)}")
         # print(f"Quantile MSE 75 step={i/10}: {np.quantile(mse, 0.75)}")
 
+        # ax1_25.plot(test_preferences["data_size"],q_25, label=f'{i/10}')
+        
         ax1_25.plot(test_preferences["data_size"],q_25, label=f'{i/10}')
+
         ax2_75.plot(test_preferences["data_size"],q_75, label=f'{i/10}')
+        # ax2_75.plot(test_preferences["data_size"],q_75, label=f'{i/10}')
         ax1_25.legend()
         ax2_75.legend()
         ax1_25.set_xlabel("data size")
         ax2_75.set_xlabel("data size")
         ax1_25.set_ylabel("quantile25")
         ax2_75.set_ylabel("quantile75")
-        fig1.savefig("quantile")
-
+        fig1.savefig("quantile_1")
         
         ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
         ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
@@ -417,7 +420,7 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         ax2.set_title("mse")
         ax3.set_title("mape")
         # fig.colorbar()
-        fig.savefig("tests_4")
+        fig.savefig("tests_7")
         # fig.close()
     
     print(q_25, q_75)
@@ -467,7 +470,7 @@ if __name__ == "__main__":
         "model_type": "ma",
     }
     test_p = {
-        "set_data": (13000,14900, 150),
+        "set_data": (13000,14900, 70),
         "input_size": 100,
         "output_size": 100,
         "learning_rate": 0.00001,
