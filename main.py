@@ -229,7 +229,7 @@ def delta_horisontal_line_mse(predict, real, output)-> int:
     return res/len(predict)
 def model_settings(preferences, cur_d_size, cur_step, k):
     dataset_name = f"test_ds_({cur_step/10})_{k}"
-    model_name = f"dlinear_(name_ds{dataset_name})_size{cur_d_size}"
+    model_name = f"dlinear_(name_ds({dataset_name}))_size{cur_d_size}"
     # set_data = preferences["set_data"]
     input_size = preferences["input_size"]
     output_size = preferences["output_size"]
@@ -298,7 +298,7 @@ def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset
         type = train_preferences["model_type"]
         for d_size in train_preferences["data_size"]:
             for i in range(rw_range[0], rw_range[1]):
-                for n in range(10):
+                for n in range(1):
                     dataset_name = f"dataset/random_datasets/test_ds_({i/10})_{n}"
                     dLinear = DLinear(data_set, input_size, output_size, step = step, data_size = d_size, column_name=column_name, dataset_name = dataset_name, learning_rate=learning_rate)
                     # dataset_name = 'dataset_1'
@@ -308,7 +308,7 @@ def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset
                     print(dLinear.model_name)
                     # dLinear.load_modal("dlinear(2024-02-23_16-54-53-039394)_dataset_1_value_input100_output100MA")
                     # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-                    dLinear.train(num_epochs =  1000, gpu=True)
+                    dLinear.train(num_epochs =  train_preferences["num_epoch"], gpu=True)
     
 
     
@@ -338,7 +338,7 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
             mse_mean = []
             
             for data_set in range(set_data[0], set_data[1], set_data[2]):
-                for k in range(10):
+                for k in range(1):
                 
                     # data_set = 13000
                     # dataset_name = f"test_ds_({i/10})_{k}"
@@ -408,7 +408,7 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         ax2_75.set_xlabel("data size")
         ax1_25.set_ylabel("quantile25_MAPE")
         ax2_75.set_ylabel("quantile75_MAPE")
-        fig1.savefig("quantile_MAPE_norm_1")
+        fig1.savefig("quantile_MAPE_norm_2")
         
         ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
         ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
@@ -426,7 +426,7 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         ax2.set_title("mse")
         ax3.set_title("mape")
         # fig.colorbar()
-        fig.savefig("tests_norm_1")
+        fig.savefig("tests_norm_2")
         # fig.close()
     
     print(q_25, q_75)
@@ -471,9 +471,10 @@ if __name__ == "__main__":
         "output_size": 100,
         "learning_rate": 0.00001,
         "step": 1,
-        "data_size": [7000, 8000, 9000],# 10000, 11000, 12000],
+        "data_size": [8000, 9000],# 10000, 11000, 12000],
         "column_name": "value",
         "model_type": "ma_norm",
+        "num_epoch": 500
     }
     test_p = {
         "set_data": (13000,14900, 70),
@@ -481,12 +482,12 @@ if __name__ == "__main__":
         "output_size": 100,
         "learning_rate": 0.00001,
         "step": 1,
-        "data_size": [7000, 8000, 9000, 10000, 11000, 12000],
+        "data_size": [7000, 8000, 9000],#, 10000, 11000, 12000],
         "column_name": "value",
         "model_type": "ma_norm",
     }
     train_model(dataset_generation=False, rw_range=[3, 4], train_preferences=train_p)
-    # test_dependencies(test_preferences=test_p, rw_range = [1,5])
+    # test_dependencies(test_preferences=test_p, rw_range = [3,4])
     # test1()
 
     # test_dependencies(test_preferences=test_p, rw_range=[1,5])

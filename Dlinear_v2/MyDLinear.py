@@ -52,18 +52,27 @@ class DLinearModelWithNormalization(nn.Module):
         self.bias = nn.Parameter(torch.zeros(1))
         
     def forward(self, context):
-        mean, std, var = torch.mean(context), torch.std(context), torch.var(context) 
+        self.mean, self.std, var = torch.mean(context), torch.std(context), torch.var(context) 
         # print("Mean, Std and Var before Normalize:\n",  
         #     mean, std, var) 
-        context  = (context-mean)/std
+        
+        context  = (context-self.mean)/self.std
         seasonal, trend = self.decomposition(context)
         #print(seasonal, trend)
         
         seasonal_output = self.linear_seasonal(seasonal.reshape(1, 1, -1))
         trend_output = self.linear_trend(trend.reshape(1, 1, -1))
         
-        return seasonal_output + trend_output
-    
+        
+        
+        
+        return self.from_norm(seasonal_output) + self.from_norm(trend_output)
+    def from_norm(self, x):
+        return x*self.std +self.mean
+        # print("Mean, Std and Var before Normalize:\n",  
+        #     mean, std, var) 
+        
+        # context  = (context-self.mean)/self.std
     def decompos(self, x):
         seasonal, trend = self.decomposition(x)
         return seasonal, trend
