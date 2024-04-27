@@ -179,7 +179,8 @@ class DLinear:
 
         self.data_set = data_set
         self.column_name = column_name
-        self.model_name = f"dlinear_(name_ds{dataset_name.split("/")[-1]})_size{self.data_size}"
+        dataset_name = dataset_name.split("/")[-1]
+        self.model_name = f"dlinear_(name_ds({dataset_name}))_size{self.data_size}"
         print(self.model_name)
         self.model = None
     def train_model(self, model, dataloader, criterion, optimizer, num_epochs=100):

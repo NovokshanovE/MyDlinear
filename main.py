@@ -305,6 +305,7 @@ def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset
                     data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
                     #data = dLinear.set_data(func=func)
                     dLinear.set_model(type=type)
+                    print(dLinear.model_name)
                     # dLinear.load_modal("dlinear(2024-02-23_16-54-53-039394)_dataset_1_value_input100_output100MA")
                     # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
                     dLinear.train(num_epochs =  1000, gpu=True)
