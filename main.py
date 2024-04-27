@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.seasonal import STL
-# from torchvision import models
+# from torchvision import modelsp
 # from torchsummary import summary
 def base_test():
     def func(x):
@@ -252,17 +252,22 @@ def model_settings(preferences, cur_d_size, cur_step, k):
         
         model_name += "oneLayer"
         return model_name
+    def maNorm_model(model_name):
+        
+        model_name += "MAnorm"
+        return model_name
 
     setting = {
         "stl": stl_model,
         "ma": ma_model,
-        "one_layer": oneLayer_model
+        "one_layer": oneLayer_model,
+        "ma_norm": maNorm_model
     }
     model_name = setting[type](model_name)
     dLinear = DLinear(input_size, output_size, step = 1, data_size = cur_d_size, column_name=column_name, dataset_name = dataset_name, info=False)
     data = dLinear.data_reader(file_name="dataset/random_datasets/"+dataset_name +'.csv', column_name=column_name)
     dLinear.set_model(type=type)
-    dLinear.load_modal("saving_models/test2/"+model_name)
+    dLinear.load_modal("saving_models/test3/"+model_name)
     return dLinear, data
 
 def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset_generation: bool = False, train_preferences: dict = None):
@@ -294,7 +299,7 @@ def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset
         for d_size in train_preferences["data_size"]:
             for i in range(rw_range[0], rw_range[1]):
                 for n in range(10):
-                    dataset_name = f"test_ds_({i/10})_{n}"
+                    dataset_name = f"dataset/random_datasets/test_ds_({i/10})_{n}"
                     dLinear = DLinear(data_set, input_size, output_size, step = step, data_size = d_size, column_name=column_name, dataset_name = dataset_name, learning_rate=learning_rate)
                     # dataset_name = 'dataset_1'
                     data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
@@ -400,9 +405,9 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         ax2_75.legend()
         ax1_25.set_xlabel("data size")
         ax2_75.set_xlabel("data size")
-        ax1_25.set_ylabel("quantile25")
-        ax2_75.set_ylabel("quantile75")
-        fig1.savefig("quantile_1")
+        ax1_25.set_ylabel("quantile25_MAPE")
+        ax2_75.set_ylabel("quantile75_MAPE")
+        fig1.savefig("quantile_MAPE_norm_1")
         
         ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
         ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
@@ -420,7 +425,7 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         ax2.set_title("mse")
         ax3.set_title("mape")
         # fig.colorbar()
-        fig.savefig("tests_7")
+        fig.savefig("tests_norm_1")
         # fig.close()
     
     print(q_25, q_75)
@@ -465,9 +470,9 @@ if __name__ == "__main__":
         "output_size": 100,
         "learning_rate": 0.00001,
         "step": 1,
-        "data_size": [7000, 8000, 9000, 10000, 11000, 12000],
+        "data_size": [7000, 8000, 9000],# 10000, 11000, 12000],
         "column_name": "value",
-        "model_type": "ma",
+        "model_type": "ma_norm",
     }
     test_p = {
         "set_data": (13000,14900, 70),
@@ -477,9 +482,10 @@ if __name__ == "__main__":
         "step": 1,
         "data_size": [7000, 8000, 9000, 10000, 11000, 12000],
         "column_name": "value",
-        "model_type": "ma",
+        "model_type": "ma_norm",
     }
-    test_dependencies(test_preferences=test_p, rw_range = [1,5])
+    train_model(dataset_generation=False, rw_range=[3, 4], train_preferences=train_p)
+    # test_dependencies(test_preferences=test_p, rw_range = [1,5])
     # test1()
 
     # test_dependencies(test_preferences=test_p, rw_range=[1,5])

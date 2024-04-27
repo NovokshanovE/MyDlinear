@@ -40,6 +40,33 @@ class DLinearModel(nn.Module):
     def decompos(self, x):
         seasonal, trend = self.decomposition(x)
         return seasonal, trend
+
+
+   
+class DLinearModelWithNormalization(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(DLinearModelWithNormalization, self).__init__()
+        self.linear_seasonal = nn.Linear(input_size, output_size)
+        self.linear_trend = nn.Linear(input_size, output_size)
+        self.decomposition = DecompositionLayer(input_size)
+        self.bias = nn.Parameter(torch.zeros(1))
+        
+    def forward(self, context):
+        mean, std, var = torch.mean(context), torch.std(context), torch.var(context) 
+        # print("Mean, Std and Var before Normalize:\n",  
+        #     mean, std, var) 
+        context  = (context-mean)/std
+        seasonal, trend = self.decomposition(context)
+        #print(seasonal, trend)
+        
+        seasonal_output = self.linear_seasonal(seasonal.reshape(1, 1, -1))
+        trend_output = self.linear_trend(trend.reshape(1, 1, -1))
+        
+        return seasonal_output + trend_output
+    
+    def decompos(self, x):
+        seasonal, trend = self.decomposition(x)
+        return seasonal, trend
     
 class OneLayerModel(nn.Module):
     def __init__(self, input_size, output_size):
@@ -131,7 +158,7 @@ class DecompositionLayer(nn.Module):
     
 class DLinear:
     def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset', info = True):
-        torch.set_num_threads(8)
+        torch.set_num_threads(20)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if info:
             print('Using device:', device)
@@ -167,6 +194,28 @@ class DLinear:
                     output = model.forward(X).view(1, -1, 1)
                     #print(torch.tensor([output.tolist()]), Y)
                     loss = criterion(output, Y)
+                    loss.backward()
+                    optimizer.step()
+                    
+    def train_model_with_normalization(self, model, dataloader, criterion, optimizer, num_epochs=100):
+        with alive_bar(num_epochs) as bar:
+            for epoch in range(num_epochs):
+
+                bar()
+                
+                for X, Y in dataloader:
+                    
+                    optimizer.zero_grad()
+                    #print(X, Y)
+                    output = model.forward(X).view(1, -1, 1)
+                    loss = criterion(output, Y)
+                    l2_lambda = 0.001
+                    l2_norm = sum(p.pow(2.0).sum()
+                                for p in model.parameters())
+                
+                    loss = loss + l2_lambda * l2_norm
+                                    #print(torch.tensor([output.tolist()]), Y)
+                    
                     loss.backward()
                     optimizer.step()
     def data_reader(self, file_name, column_name):
@@ -205,11 +254,15 @@ class DLinear:
         def oneLayer_model():
             self.model = OneLayerModel(self.input_size, self.output_size)
             self.model_name += "oneLayer"
+        def ma_norm_model():
+            self.model = DLinearModelWithNormalization(self.input_size, self.output_size)
+            self.model_name += "MAnorm"
 
         setting = {
             "stl": stl_model,
             "ma": ma_model,
-            "one_layer": oneLayer_model
+            "one_layer": oneLayer_model,
+            "ma_norm": ma_norm_model
         }
         setting[type]()
             
@@ -229,7 +282,7 @@ class DLinear:
         print(f"Len Dataset = {len(dataset)}")
         dataloader = DataLoader(dataset)#, shuffle=True)
         len(dataloader)
-        self.train_model(self.model, dataloader, criterion, optimizer, num_epochs=num_epochs)
+        self.train_model_with_normalization(self.model, dataloader, criterion, optimizer, num_epochs=num_epochs)
         torch.save(self.model.state_dict(), self.model_name)
         print(f"Model save as {self.model_name}")
         print(datetime.datetime.now())
