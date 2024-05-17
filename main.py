@@ -2,7 +2,7 @@
 # import torch
 import random
 from turtle import title
-
+import torch.nn as nn
 from sympy import N, false
 # from traitlets import dlink
 from Dlinear_v2.MyDLinear import DLinear
@@ -267,10 +267,10 @@ def model_settings(preferences, cur_d_size, cur_step, k):
     dLinear = DLinear(input_size, output_size, step = 1, data_size = cur_d_size, column_name=column_name, dataset_name = dataset_name, info=False)
     data = dLinear.data_reader(file_name="dataset/random_datasets/"+dataset_name +'.csv', column_name=column_name)
     dLinear.set_model(type=type)
-    dLinear.load_modal("saving_models/test3/"+model_name)
+    dLinear.load_modal("saving_models/test19(1e-1)/"+model_name)
     return dLinear, data
 
-def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset_generation: bool = False, train_preferences: dict = None):
+def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset_generation: bool = False, train_preferences: dict = None, weight_decay=0):
     """About train_model
 
     Args:
@@ -308,7 +308,7 @@ def train_model(test_preferences: dict  = None, rw_range: list = [1,10], dataset
                     print(dLinear.model_name)
                     # dLinear.load_modal("dlinear(2024-02-23_16-54-53-039394)_dataset_1_value_input100_output100MA")
                     # dLinear.train__with_metrics(data_set=data_set, num_epochs=1000)
-                    dLinear.train(num_epochs =  train_preferences["num_epoch"], gpu=True)
+                    dLinear.train(num_epochs =  train_preferences["num_epoch"], gpu=True, weight_decay=0)
     
 
     
@@ -367,7 +367,12 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
                     # dLinear = DLinear(data_set, input_size, output_size, step = 1, data_size = d_size, column_name=column_name, dataset_name = dataset_name)
                     # data = dLinear.data_reader(file_name=dataset_name +'.csv', column_name=column_name)
                     dLinear, data = model_settings(test_preferences, d_size, i, k)
-                    
+                    print("---------------")
+
+                    for p in dLinear.model.parameters():
+                        
+                        print(p)
+                    print("---------------")
                     # print(f"Quantile MAE 25 step={i/10}: {np.quantile(data[column_name].values, 0.25)}")
                     # print(f"Quantile MAE 75 step={i/10}: {np.quantile(data[column_name].values, 0.75)}")
                     
@@ -398,21 +403,23 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
 
         # ax1_25.plot(test_preferences["data_size"],q_25, label=f'{i/10}')
         
-        ax1_25.plot(test_preferences["data_size"],q_25, label=f'{i/10}')
+        # ax3.plot(test_preferences["data_size"],q_25, label=f'q25_{i/10}', marker=".")
 
-        ax2_75.plot(test_preferences["data_size"],q_75, label=f'{i/10}')
+        # ax3.plot(test_preferences["data_size"],q_75, label=f'q75_{i/10}',  marker=".")
+        ax3.fill_between(test_preferences["data_size"], q_25, q_75, color='red', alpha= .5 )
         # ax2_75.plot(test_preferences["data_size"],q_75, label=f'{i/10}')
-        ax1_25.legend()
-        ax2_75.legend()
-        ax1_25.set_xlabel("data size")
-        ax2_75.set_xlabel("data size")
-        ax1_25.set_ylabel("quantile25_MAPE")
-        ax2_75.set_ylabel("quantile75_MAPE")
-        fig1.savefig("quantile_MAPE_norm_2")
+        # ax1_25.legend()
+        # ax2_75.legend()
+        # ax1_25.set_xlabel("data size")
+        # ax2_75.set_xlabel("data size")
+        # ax1_25.set_ylabel("quantile25_MAPE")
+        # ax2_75.set_ylabel("quantile75_MAPE")
+        # fig1.savefig("quantile_MAPE_norm_16")
         
-        ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}')
-        ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}')
-        ax3.plot(test_preferences["data_size"],mape, label=f'{i/10}')
+        ax1.plot(test_preferences["data_size"],mae, label=f'{i/10}',  marker=".")
+        ax2.plot(test_preferences["data_size"],mse, label=f'{i/10}',  marker=".")
+        ax3.plot(test_preferences["data_size"],mape, label=f'{i/10}',  marker=".")
+        
         ax1.legend()
         ax2.legend()
         ax3.legend()
@@ -426,13 +433,14 @@ def test_dependencies(test_preferences: dict  = None, rw_range: list = [1,10]):
         ax2.set_title("mse")
         ax3.set_title("mape")
         # fig.colorbar()
-        fig.savefig("tests_norm_2")
+        fig.savefig("tests_norm_19")
         # fig.close()
     
     print(q_25, q_75)
     print(mae)
     print(mape)
     print(mse)
+    
     
 def test_dependencies2(test_preferences: dict  = None, rw_range: list = [1,10]):
     if test_preferences:
@@ -471,22 +479,22 @@ if __name__ == "__main__":
         "output_size": 100,
         "learning_rate": 0.00001,
         "step": 1,
-        "data_size": [8000, 9000],# 10000, 11000, 12000],
+        "data_size": [13000],
         "column_name": "value",
-        "model_type": "ma_norm",
-        "num_epoch": 500
+        "model_type": "ma",
+        "num_epoch": 800
     }
     test_p = {
-        "set_data": (13000,14900, 70),
+        "set_data": (11500,14900,200),
         "input_size": 100,
         "output_size": 100,
         "learning_rate": 0.00001,
         "step": 1,
-        "data_size": [7000, 8000, 9000],#, 10000, 11000, 12000],
+        "data_size": [8000, 9000, 10000, 11000, 12000, 13000], #5000, 6000],# 6000, 7000, 8000],
         "column_name": "value",
-        "model_type": "ma_norm",
+        "model_type": "ma",
     }
-    train_model(dataset_generation=False, rw_range=[3, 4], train_preferences=train_p)
+    train_model(dataset_generation=False, rw_range=[3, 4], train_preferences=train_p, weight_decay=0)
     # test_dependencies(test_preferences=test_p, rw_range = [3,4])
     # test1()
 

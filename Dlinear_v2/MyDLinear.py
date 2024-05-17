@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 # import torch.optim.lr_scheduler as lr_scheduler
 from statsmodels.tsa.seasonal import STL
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
 # import intel_extension_for_pytorch as ipex
 # from decomposition import DecompositionLayer
 #torch.set_num_threads(10)
@@ -55,20 +56,31 @@ class DLinearModelWithNormalization(nn.Module):
         self.mean, self.std, var = torch.mean(context), torch.std(context), torch.var(context) 
         # print("Mean, Std and Var before Normalize:\n",  
         #     mean, std, var) 
-        
-        context  = (context-self.mean)/self.std
+        # print("Old:", context)
+        context  = self.minmaxscaler(context)#(context-self.mean)/self.std
+        # print("New:", context)
         seasonal, trend = self.decomposition(context)
+        
         #print(seasonal, trend)
         
         seasonal_output = self.linear_seasonal(seasonal.reshape(1, 1, -1))
         trend_output = self.linear_trend(trend.reshape(1, 1, -1))
         
-        
+
         
         
         return self.from_norm(seasonal_output) + self.from_norm(trend_output)
+    
+    def minmaxscaler(self, data):
+        min = data.min()
+        max = data.max()  
+        self.minimum = min
+        self.delta = (max-min)
+        return (data - min)/(max-min)
+    
+    
     def from_norm(self, x):
-        return x*self.std +self.mean
+        return x/self.delta +self.minimum
         # print("Mean, Std and Var before Normalize:\n",  
         #     mean, std, var) 
         
@@ -167,7 +179,7 @@ class DecompositionLayer(nn.Module):
     
 class DLinear:
     def __init__(self, data_set = 1000, input_size = 100, output_size = 100, learning_rate = 0.00001, step = 1, data_size = 3000, column_name = "HUFL", dataset_name = 'dataset', info = True):
-        torch.set_num_threads(20)
+        # torch.set_num_threads(20)
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if info:
             print('Using device:', device)
@@ -191,7 +203,7 @@ class DLinear:
         dataset_name = dataset_name.split("/")[-1]
         self.model_name = f"dlinear_(name_ds({dataset_name}))_size{self.data_size}"
         print(self.model_name)
-        self.model = None
+        self.model:nn.Module = None
     def train_model(self, model, dataloader, criterion, optimizer, num_epochs=100):
         with alive_bar(num_epochs) as bar:
             for epoch in range(num_epochs):
@@ -209,6 +221,7 @@ class DLinear:
                     optimizer.step()
                     
     def train_model_with_normalization(self, model, dataloader, criterion, optimizer, num_epochs=100):
+        print("jpdkwopowkdoekodkeokkodekkdo")
         with alive_bar(num_epochs) as bar:
             for epoch in range(num_epochs):
 
@@ -220,12 +233,13 @@ class DLinear:
                     #print(X, Y)
                     output = model.forward(X).view(1, -1, 1)
                     loss = criterion(output, Y)
-                    l2_lambda = 0.001
-                    l2_norm = sum(p.pow(2.0).sum()
+                    
+                    l2_lambda = 1e-3
+                    l2_norm = sum(p.abs().sum()
                                 for p in model.parameters())
                 
                     loss = loss + l2_lambda * l2_norm
-                                    #print(torch.tensor([output.tolist()]), Y)
+                                    # print(torch.tensor([output.tolist()]), Y)
                     
                     loss.backward()
                     optimizer.step()
@@ -277,7 +291,7 @@ class DLinear:
         }
         setting[type]()
             
-    def train(self, num_epochs = 100, gpu=False):
+    def train(self, num_epochs = 100, gpu=False, weight_decay=0):
         # if gpu:
         #     optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         #     self.model = self.model.to("xpu")
@@ -286,7 +300,7 @@ class DLinear:
         print(datetime.datetime.now())
         
         
-        optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
         criterion = nn.L1Loss()
         window_size = self.input_size  
         dataset = MyDataset(self.X, window_size, self.output_size)
